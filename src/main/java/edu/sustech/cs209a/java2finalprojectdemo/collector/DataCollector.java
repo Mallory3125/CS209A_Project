@@ -3,7 +3,7 @@ import com.alibaba.fastjson2.JSON;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
-import edu.sustech.cs209a.java2finalprojectdemo.repository.*;
+import edu.sustech.cs209a.java2finalprojectdemo.domain.*;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -17,7 +17,7 @@ import java.util.zip.GZIPInputStream;
 //&key=24dXqAIrr2BSewLy3MHpkg((
 public class DataCollector {
     public static void main(String[] args) {
-        String sampleurl = "https://api.stackexchange.com/2.3/search/advanced?page=1&pagesize=10&order=desc&sort=votes&tagged=java&site=stackoverflow&filter=withbody";
+        String sampleUrl = "https://api.stackexchange.com/2.3/search/advanced?page=1&pagesize=10&order=desc&sort=votes&tagged=java&site=stackoverflow&filter=withbody";
 
         List<Question> questions = collectQuestions();
         List<Answer> answers = collectAnswers(questions);
@@ -28,57 +28,70 @@ public class DataCollector {
         try {
             HttpClient httpClient = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .build();
+                .uri(URI.create(url))
+                .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
             //Content-Encoding:gzip
             InputStream responseBodyStream = new GZIPInputStream(response.body());
             // Content-Type:application/json; charset=utf-8
             String json = new String(responseBodyStream.readAllBytes(), StandardCharsets.UTF_8);
             JSONObject jsonObject = JSON.parseObject(json);
-            JSONArray itemsArray = jsonObject.getJSONArray("items");
-
-            return itemsArray;
+            System.out.println(json);
+            return jsonObject.getJSONArray("items");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static List<Question> collectQuestions(){
-        String qUrl = "https://api.stackexchange.com/2.3/search/advanced?page=10&pagesize=50&site=stackoverflow&filter=withbody&tagged=java&order=desc&sort=votes";
-        JSONArray itemsArray = loadFromUrl(qUrl);
+    public static List<Question> collectQuestions() {
+        String questionUrl = "https://api.stackexchange.com/2.3/search/advanced?page=1&pagesize=50&site=stackoverflow&filter=withbody&tagged=java&order=desc&sort=votes";
+
+        JSONArray itemsArray = loadFromUrl(questionUrl);
         List<Question> questions = new ArrayList<>();
-        for (int i = 0; i < itemsArray.size(); i++) {
-            JSONObject questionObject = itemsArray.getJSONObject(i);
-            Question question = JSON.parseObject(questionObject.toJSONString(), Question.class);
-            questions.add(question);
-        }
+        addToList(itemsArray, Question.class, questions);
         return questions;
-        // TODO: 12/5/2023
     }
 
-
-    public static List<Answer> collectAnswers(List<Question> questions){
-        String aUrl = "https://api.stackexchange.com/2.3/questions/{id}/answers?&filter=withbody&order=desc&sort=votes&site=stackoverflow";
-
+    public static List<Answer> collectAnswers(List<Question> questions) {
+        String answerUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/answers?&filter=withbody&order=desc&sort=votes&site=stackoverflow";
         List<Answer> answers = new ArrayList<>();
-        for (Question question: questions) {
-            Long question_id = question.getId();
+
+        for (Question question : questions) {
+            JSONArray answerArray = loadFromUrl(String.format(answerUrlTemplate, question.getId()));
+            addToList(answerArray, Answer.class, answers);
         }
+
         return answers;
-        // TODO: 12/5/2023
     }
 
-    public static List<Comment> collectComments(List<Question> questions,List<Answer> answers){
-        String cUrl = "https://api.stackexchange.com/2.3/questions/{id}/comments?order=desc&sort=votes&site=stackoverflow";
-        String cUrl2 = "https://api.stackexchange.com/2.3/answers/{id}/comments?order=desc&sort=votes&site=stackoverflow";
+    public static List<Comment> collectComments(List<Question> questions, List<Answer> answers) {
+        String questionUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/comments?order=desc&sort=votes&site=stackoverflow";
+        String answerUrlTemplate = "https://api.stackexchange.com/2.3/answers/%d/comments?order=desc&sort=votes&site=stackoverflow";
+
         List<Comment> comments = new ArrayList<>();
-        for (Question question: questions) {
-            Long question_id = question.getId();
+
+        for (Question question : questions) {
+            JSONArray commentArray = loadFromUrl(String.format(questionUrlTemplate, question.getId()));
+            addToList(commentArray, Comment.class, comments);
         }
-        for (Answer answer: answers) {
-//            Long answer_id = answer.getId();
+
+        for (Answer answer : answers) {
+            JSONArray commentArray = loadFromUrl(String.format(answerUrlTemplate, answer.getId()));
+            addToList(commentArray, Comment.class, comments);
         }
+
         return comments;
     }
+
+
+    public static void addToList(JSONArray jsonArray, Class<?> targetClass, List<?> targetList) {
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            Object targetObject = JSON.parseObject(jsonObject.toJSONString(), targetClass);
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) targetList;
+            list.add(targetObject);
+        }
+    }
+
 }

@@ -1,4 +1,4 @@
-package edu.sustech.cs209a.java2finalprojectdemo.repository;
+package edu.sustech.cs209a.java2finalprojectdemo.domain;
 
 import java.util.List;
 

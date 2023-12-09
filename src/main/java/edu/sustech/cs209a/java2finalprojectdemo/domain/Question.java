@@ -1,12 +1,12 @@
-package edu.sustech.cs209a.java2finalprojectdemo.repository;
+package edu.sustech.cs209a.java2finalprojectdemo.domain;
 
 import com.alibaba.fastjson2.annotation.JSONField;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Question {
+    @JSONField(name = "question_id")
     private Long id;
     private Long tagId;
     @JSONField(serialize = false)
