@@ -1,49 +1,64 @@
 package edu.sustech.cs209a.java2finalprojectdemo.domain;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import jakarta.persistence.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Entity
+@Table(name = "questions")
 public class Question {
+
+    @Id
+    @Column(name = "id")
     @JSONField(name = "question_id")
     private Long id;
-    private Long tagId;
-    @JSONField(serialize = false)
-    private List<Tag> tags;
-    @JSONField(serialize = false,deserialize = false)
-    private List<Object> owner;
+
     private String title;
     private String body;
     private Long score;
-
+    @Column(name = "view_count")
+    @JSONField(name = "view_count")
     private Long viewCount;
+    @Column(name = "answer_count")
+    @JSONField(name = "answer_count")
     private Long answerCount;
-
+    @JSONField(serialize = false)
+    @Transient
+    private List<String> tags;
+    @JSONField(serialize = false,deserialize = false)
+    @Transient
+    private List<Object> owner;
     @Override
     public String toString() {
         return "Question{" +
                 "id=" + id +
-
+                ", tagsize=" + tags.size() +
+                ", owner=" + owner +
                 ", title='" + title + '\'' +
-                ", body='" + body + '\'' +
                 ", score=" + score +
                 ", viewCount=" + viewCount +
                 ", answerCount=" + answerCount +
                 '}';
     }
 
-    public List<Tag> getTags() {
+    public List<String> getTags() {
         return tags;
     }
 
     public void setTags(List<String> tags) {
-        this.tags = new ArrayList<>();
-        for (String s:tags) {
-            this.tags.add(new Tag(s));
-        }
-
+        this.tags = tags;
     }
+//    public List<Tag> getTags() {
+//        return tags;
+//    }
+//
+//    public void setTags(List<String> tags) {
+//        this.tags = new ArrayList<>();
+//        for (String s:tags) {
+//            this.tags.add(new Tag(s));
+//        }
+//    }
 
     public Question() {
     }

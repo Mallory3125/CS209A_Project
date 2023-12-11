@@ -1,18 +1,37 @@
 package edu.sustech.cs209a.java2finalprojectdemo.domain;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import jakarta.persistence.*;
 
 import java.util.List;
-
+@Entity
+@Table(name = "answers")
 public class Answer {
+    @Id
+    @Column(name = "id")
     @JSONField(name = "answer_id")
     private Long id;
+    @Column(name = "question_id")
+    @JSONField(name = "question_id")
     private Long questionId;
-    @JSONField(serialize = false,deserialize = false)
-    private List<Object> owner;
-    private boolean isAccepted;
+
+    @Column(name = "is_accepted")
+    @JSONField(name = "is_accepted")
+    private boolean accepted;
     private String body;
     private Long score;
+    @JSONField(serialize = false,deserialize = false)
+    @Transient
+    private List<Object> owner;
+    @Override
+    public String toString() {
+        return "Answer{" +
+                "id=" + id +
+                ", questionId=" + questionId +
+                ", accepted=" + accepted +
+                ", score=" + score +
+                '}';
+    }
 
     public Long getId() {
         return id;
@@ -38,12 +57,12 @@ public class Answer {
         this.owner = owner;
     }
 
-    public boolean isAccepted() {
-        return isAccepted;
+    public boolean getAccepted() {
+        return accepted;
     }
 
     public void setAccepted(boolean accepted) {
-        isAccepted = accepted;
+        this.accepted = accepted;
     }
 
     public String getBody() {
