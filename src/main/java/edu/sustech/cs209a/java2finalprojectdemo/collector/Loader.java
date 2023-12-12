@@ -4,20 +4,13 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
-import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
-import edu.sustech.cs209a.java2finalprojectdemo.service.QuestionService;
-import edu.sustech.cs209a.java2finalprojectdemo.service.QuestionServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 
 import java.beans.Transient;
 import java.io.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -29,21 +22,26 @@ public class Loader {
     public static void main(String[] args) {
         Properties prop = loadDBUser();
         openDB(prop);
-
-        createTable();
-
+        //!!!only create the table in first loop
+//      createTable();
+        //change the page parameters in datacollector
         List<Question> questions = collectQuestions();
-        System.out.println("question done");
         insertDataToDatabase(questions,"questions");
+        System.out.println(questions.size()+"question done");
 
         List<Answer> answers = collectAnswers(questions);
-        System.out.println("answer done");
         insertDataToDatabase(answers,"answers");
+        System.out.println("answer done");
 
-        List<Comment> comments = collectComments(questions,answers);
-        System.out.println("comment done");
+        List<Comment> comments = collectCommentsFromQuestion(questions);
         insertDataToDatabase(comments,"comments");
 
+        List<Comment> comments1 = collectCommentsFromAnswer(answers);
+        insertDataToDatabase(comments1,"comments");
+        System.out.println("comment done");
+
+        insertTag(questions);
+        System.out.println("tag done");
 
         closeDB();
     }
@@ -66,6 +64,34 @@ public class Loader {
         }
         return stringList;
     }
+
+    public static void insertTag(List<Question> questions) {
+        String insertTag = "INSERT INTO tags (name) VALUES (?) ON CONFLICT (name) DO NOTHING";
+        String insertRelation = "INSERT INTO question_tags (tag_name, question_id) VALUES (?, ?)";
+
+        try (PreparedStatement insertTagStatement = con.prepareStatement(insertTag);
+             PreparedStatement insertRelationStatement = con.prepareStatement(insertRelation)) {
+
+            for (Question question : questions) {
+                List<String> tags = question.getTags();
+                for (String tag : tags) {
+                    // Insert tag with ON CONFLICT DO NOTHING
+                    insertTagStatement.setObject(1, tag);
+                    insertTagStatement.executeUpdate();
+
+                    // Insert relation between question and tag
+                    insertRelationStatement.setObject(1, tag);
+                    insertRelationStatement.setObject(2, question.getId());
+                    insertRelationStatement.executeUpdate();
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
     public static <T> void insertDataToDatabase(List<T> data, String tableName)  {
         T item1 = data.get(0);
         // 构建插入语句
@@ -103,9 +129,8 @@ public class Loader {
                 }
                 //执行插入操作
                 preparedStatement.executeUpdate();
-                // 关闭PreparedStatement
-                preparedStatement.close();
-                if (j%10==0) System.out.println(tableName+": "+j);
+
+//                if (j%100==0) System.out.println(tableName+": "+j);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -130,6 +155,7 @@ public class Loader {
                         query.setLength(0); // 清空StringBuilder
                     }
                 }
+                System.out.println("create tables done");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

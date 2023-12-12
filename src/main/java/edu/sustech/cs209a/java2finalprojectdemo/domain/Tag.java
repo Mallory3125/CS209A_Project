@@ -9,9 +9,9 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "tag")
 public class Tag {
-    @Id
-    private Long id;
+
     @JSONField(serialize = false,deserialize = false)
+    @Id
     private String name;
     public Tag(String name) {
         this.name = name;

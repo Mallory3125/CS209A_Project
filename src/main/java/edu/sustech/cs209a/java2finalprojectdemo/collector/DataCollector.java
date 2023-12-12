@@ -13,9 +13,19 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
-//&key=24dXqAIrr2BSewLy3MHpkg((
+
 public class DataCollector {
     static String key = "&key=24dXqAIrr2BSewLy3MHpkg((";
+    //another key: o*hEYAOnnKscaF5L4szQYA((
+    //each key has 10000 max quota
+
+    static int pagesize = 2;
+    static int start_page = 0;
+    static int end_page = 1;
+
+    public static void main(String[] args) {
+        collectQuestions();
+    }
 
     public static JSONArray loadFromUrl(String url){
         try {
@@ -28,8 +38,9 @@ public class DataCollector {
             InputStream responseBodyStream = new GZIPInputStream(response.body());
             // Content-Type:application/json; charset=utf-8
             String json = new String(responseBodyStream.readAllBytes(), StandardCharsets.UTF_8);
+            //print the remain quota
+//            System.out.println(json.substring(json.length()-20));
             JSONObject jsonObject = JSON.parseObject(json);
-//            System.out.println(json);
             return jsonObject.getJSONArray("items");
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -37,26 +48,20 @@ public class DataCollector {
     }
 
     public static List<Question> collectQuestions() {
-        String questionUrl = "https://api.stackexchange.com/2.3/search/advanced?page=%d&pagesize=50&site=stackoverflow&filter=withbody&tagged=java&order=desc&sort=votes";
+        System.out.println("start collect questions");
+        String questionUrl = "https://api.stackexchange.com/2.3/search/advanced?page=%d&pagesize=%d&site=stackoverflow&filter=withbody&tagged=java&order=desc&sort=votes";
         questionUrl = questionUrl+key;
         List<Question> questions = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            JSONArray itemsArray = loadFromUrl(String.format(questionUrl, i+1));
+        for (int i = start_page; i < end_page; i++) {
+            JSONArray itemsArray = loadFromUrl(String.format(questionUrl, i+1,pagesize));
             addToList(itemsArray, Question.class, questions);
         }
+        System.out.println("questions collection done");
         return questions;
     }
 
-    public static List<String> collectTags(List<Question> questions){
-        Set<String> set = new HashSet<>();
-        for (Question question : questions) {
-            List<String> tmp = question.getTags();
-            set.addAll(tmp);
-        }
-        return new ArrayList<>(set);
-    }
-
     public static List<Answer> collectAnswers(List<Question> questions) {
+        System.out.println("start collect answers");
         String answerUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/answers?filter=withbody&order=desc&sort=votes&site=stackoverflow";
         List<Answer> answers = new ArrayList<>();
         answerUrlTemplate+=key;
@@ -64,31 +69,37 @@ public class DataCollector {
             JSONArray answerArray = loadFromUrl(String.format(answerUrlTemplate, question.getId()));
             addToList(answerArray, Answer.class, answers);
         }
-
+        System.out.println("answers collection done");
         return answers;
     }
 
-    public static List<Comment> collectComments(List<Question> questions, List<Answer> answers) {
+    public static List<Comment> collectCommentsFromQuestion(List<Question> questions) {
+        System.out.println("start collect comments");
         String questionUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/comments?order=desc&sort=votes&site=stackoverflow&filter=withbody";
-        String answerUrlTemplate = "https://api.stackexchange.com/2.3/answers/%d/comments?order=desc&sort=votes&site=stackoverflow&filter=withbody";
         questionUrlTemplate+=key;
-        answerUrlTemplate+=key;
         List<Comment> comments = new ArrayList<>();
 
         for (Question question : questions) {
             JSONArray commentArray = loadFromUrl(String.format(questionUrlTemplate, question.getId()));
             addToList(commentArray, Comment.class, comments);
         }
-        System.out.println("question comment done");
+        System.out.println("question comments collection done");
+
+        return comments;
+    }
+    public static List<Comment> collectCommentsFromAnswer(List<Answer> answers) {
+        System.out.println("start collect comments");
+        String answerUrlTemplate = "https://api.stackexchange.com/2.3/answers/%d/comments?order=desc&sort=votes&site=stackoverflow&filter=withbody";
+        answerUrlTemplate+=key;
+        List<Comment> comments = new ArrayList<>();
 
         for (Answer answer : answers) {
             JSONArray commentArray = loadFromUrl(String.format(answerUrlTemplate, answer.getId()));
             addToList(commentArray, Comment.class, comments);
         }
-
+        System.out.println("answer comments collection done");
         return comments;
     }
-
 
     public static void addToList(JSONArray jsonArray, Class<?> targetClass, List<?> targetList) {
         for (int i = 0; i < jsonArray.size(); i++) {

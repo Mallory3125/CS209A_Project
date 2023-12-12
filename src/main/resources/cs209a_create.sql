@@ -2,15 +2,11 @@ drop table if exists public.question_tags;
 drop table if exists public.answers;
 drop table if exists public.tags;
 drop table if exists public.questions;
-
-
 drop table if exists public.comments;
 
 create table if not exists tags
 (
-    id   serial
-        primary key,
-    name varchar(30) not null
+    name varchar(30)  primary key
 );
 
 create table if not exists questions
@@ -25,9 +21,9 @@ create table if not exists questions
 
 create table if not exists question_tags
 (
-    tag_id      integer not null references tags (id),
+    tag_name      varchar(30) not null references tags (name),
     question_id integer not null references questions (id),
-    primary key (tag_id, question_id)
+    primary key (tag_name, question_id)
 );
 
 create table if not exists answers
