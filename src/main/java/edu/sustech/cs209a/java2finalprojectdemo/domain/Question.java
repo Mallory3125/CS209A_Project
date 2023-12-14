@@ -33,7 +33,7 @@ public class Question {
     public String toString() {
         return "Question{" +
                 "id=" + id +
-                ", tagsize=" + tags.size() +
+                ", tagSize=" + (tags != null ? tags.size() : 0) +
                 ", owner=" + owner +
                 ", title='" + title + '\'' +
                 ", score=" + score +

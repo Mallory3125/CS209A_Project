@@ -19,9 +19,10 @@ public class DataCollector {
     //another key: o*hEYAOnnKscaF5L4szQYA((
     //each key has 10000 max quota
 
-    static int pagesize = 2;
-    static int start_page = 0;
-    static int end_page = 1;
+    //15 is the maximum number of each day
+    static int pageSize = 2;
+    static int start_page = 31;
+    static int end_page = 40;
 
     public static void main(String[] args) {
         collectQuestions();
@@ -49,55 +50,62 @@ public class DataCollector {
 
     public static List<Question> collectQuestions() {
         System.out.println("start collect questions");
+        long startTime = System.nanoTime();
         String questionUrl = "https://api.stackexchange.com/2.3/search/advanced?page=%d&pagesize=%d&site=stackoverflow&filter=withbody&tagged=java&order=desc&sort=votes";
-        questionUrl = questionUrl+key;
+        questionUrl += key;
         List<Question> questions = new ArrayList<>();
         for (int i = start_page; i < end_page; i++) {
-            JSONArray itemsArray = loadFromUrl(String.format(questionUrl, i+1,pagesize));
+            JSONArray itemsArray = loadFromUrl(String.format(questionUrl, i+1, pageSize));
             addToList(itemsArray, Question.class, questions);
         }
-        System.out.println("questions collection done");
+        System.out.println("Questions collection done.");
+        getTime(startTime);
         return questions;
     }
 
     public static List<Answer> collectAnswers(List<Question> questions) {
         System.out.println("start collect answers");
+        long startTime = System.nanoTime();
         String answerUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/answers?filter=withbody&order=desc&sort=votes&site=stackoverflow";
         List<Answer> answers = new ArrayList<>();
-        answerUrlTemplate+=key;
+        answerUrlTemplate += key;
         for (Question question : questions) {
             JSONArray answerArray = loadFromUrl(String.format(answerUrlTemplate, question.getId()));
             addToList(answerArray, Answer.class, answers);
         }
-        System.out.println("answers collection done");
+        System.out.println("Answers collection done.");
+        getTime(startTime);
         return answers;
     }
 
     public static List<Comment> collectCommentsFromQuestion(List<Question> questions) {
         System.out.println("start collect comments");
+        long startTime = System.nanoTime();
         String questionUrlTemplate = "https://api.stackexchange.com/2.3/questions/%d/comments?order=desc&sort=votes&site=stackoverflow&filter=withbody";
-        questionUrlTemplate+=key;
+        questionUrlTemplate += key;
         List<Comment> comments = new ArrayList<>();
 
         for (Question question : questions) {
             JSONArray commentArray = loadFromUrl(String.format(questionUrlTemplate, question.getId()));
             addToList(commentArray, Comment.class, comments);
         }
-        System.out.println("question comments collection done");
-
+        System.out.println("Question comments collection done.");
+        getTime(startTime);
         return comments;
     }
     public static List<Comment> collectCommentsFromAnswer(List<Answer> answers) {
         System.out.println("start collect comments");
+        long startTime = System.nanoTime();
         String answerUrlTemplate = "https://api.stackexchange.com/2.3/answers/%d/comments?order=desc&sort=votes&site=stackoverflow&filter=withbody";
-        answerUrlTemplate+=key;
+        answerUrlTemplate += key;
         List<Comment> comments = new ArrayList<>();
 
         for (Answer answer : answers) {
             JSONArray commentArray = loadFromUrl(String.format(answerUrlTemplate, answer.getId()));
             addToList(commentArray, Comment.class, comments);
         }
-        System.out.println("answer comments collection done");
+        System.out.println("Answer comments collection done.");
+        getTime(startTime);
         return comments;
     }
 

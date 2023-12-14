@@ -32,7 +32,7 @@ public class QuestionTagsId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         QuestionTagsId that = (QuestionTagsId) o;
-        return questionId == that.questionId && Objects.equals(tagName, that.tagName);
+        return Objects.equals(questionId, that.questionId) && Objects.equals(tagName, that.tagName);
     }
 
     @Override

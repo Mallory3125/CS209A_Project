@@ -23,21 +23,21 @@ public class Loader {
         Properties prop = loadDBUser();
         openDB(prop);
         //!!!only create the table in first loop
-//      createTable();
-        //change the page parameters in datacollector
+//        createTable();
+        //change the page parameters in dataCollector
         List<Question> questions = collectQuestions();
         insertDataToDatabase(questions,"questions");
-        System.out.println(questions.size()+"question done");
+        System.out.println(questions.size() + " questions done");
 
         List<Answer> answers = collectAnswers(questions);
         insertDataToDatabase(answers,"answers");
-        System.out.println("answer done");
+        System.out.println(answers.size() + " answer done");
 
-        List<Comment> comments = collectCommentsFromQuestion(questions);
-        insertDataToDatabase(comments,"comments");
+        List<Comment> commentsFromQuestion = collectCommentsFromQuestion(questions);
+        insertDataToDatabase(commentsFromQuestion,"comments");
 
-        List<Comment> comments1 = collectCommentsFromAnswer(answers);
-        insertDataToDatabase(comments1,"comments");
+        List<Comment> commentsFromAnswer = collectCommentsFromAnswer(answers);
+        insertDataToDatabase(commentsFromAnswer,"comments");
         System.out.println("comment done");
 
         insertTag(questions);
@@ -67,7 +67,7 @@ public class Loader {
 
     public static void insertTag(List<Question> questions) {
         String insertTag = "INSERT INTO tags (name) VALUES (?) ON CONFLICT (name) DO NOTHING";
-        String insertRelation = "INSERT INTO question_tags (tag_name, question_id) VALUES (?, ?)";
+        String insertRelation = "INSERT INTO question_tags (tag_name, question_id) VALUES (?, ?) ON CONFLICT DO NOTHING";
 
         try (PreparedStatement insertTagStatement = con.prepareStatement(insertTag);
              PreparedStatement insertRelationStatement = con.prepareStatement(insertRelation)) {
@@ -95,37 +95,33 @@ public class Loader {
     public static <T> void insertDataToDatabase(List<T> data, String tableName)  {
         T item1 = data.get(0);
         // 构建插入语句
-        String insertQuery = "INSERT INTO " + tableName +" (";
+        StringBuilder insertQuery = new StringBuilder("INSERT INTO " + tableName + " (");
         // 获取实体类的字段
         Field[] fields = item1.getClass().getDeclaredFields();
         List<String> columnsList = getColumnName(fields);
 
         for (String colum:columnsList) {
-            insertQuery+= colum+", ";
+            insertQuery.append(colum).append(", ");
         }
-        insertQuery = insertQuery.substring(0, insertQuery.length() - 2); // 移除最后的逗号
-        insertQuery += ")";
-        insertQuery += " VALUES (";
-        for (int i = 0; i < columnsList.size(); i++) {
-            insertQuery += "?, ";
-        }
-        insertQuery = insertQuery.substring(0, insertQuery.length() - 2); // 移除最后的逗号
-        insertQuery += ")";
+        insertQuery = new StringBuilder(insertQuery.substring(0, insertQuery.length() - 2)); // 移除最后的逗号
+        insertQuery.append(")");
+        insertQuery.append(" VALUES (");
+        insertQuery.append("?, ".repeat(columnsList.size()));
+        insertQuery = new StringBuilder(insertQuery.substring(0, insertQuery.length() - 2)); // 移除最后的逗号
+        insertQuery.append(") ON CONFLICT DO NOTHING");
 
         try {
-            for (int j = 0; j < data.size(); j++) {
-                T item = data.get(j);
-
+            for (T item : data) {
                 // 使用PreparedStatement设置参数
-                PreparedStatement preparedStatement = con.prepareStatement(insertQuery);
+                PreparedStatement preparedStatement = con.prepareStatement(insertQuery.toString());
 
                 for (int i = 0; i < fields.length; i++) {
                     fields[i].setAccessible(true);
                     Object value = fields[i].get(item);
-                    if(value==null || value.getClass().equals(ArrayList.class)) {
+                    if (value == null || value.getClass().equals(ArrayList.class)) {
                         continue;
                     }
-                    preparedStatement.setObject(i+1 , value);
+                    preparedStatement.setObject(i + 1, value);
                 }
                 //执行插入操作
                 preparedStatement.executeUpdate();
