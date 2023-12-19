@@ -15,14 +15,16 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class DataCollector {
-    static String key = "&key=24dXqAIrr2BSewLy3MHpkg((";
-    //another key: o*hEYAOnnKscaF5L4szQYA((
+    static String key = "&key=o*hEYAOnnKscaF5L4szQYA((";
+    //another key: o*hEYAOnnKscaF5L4szQYA((  24dXqAIrr2BSewLy3MHpkg((
     //each key has 10000 max quota
 
     //15 is the maximum number of each day
     static int pageSize = 2;
-    static int start_page = 31;
-    static int end_page = 40;
+    static int start_page = 8;
+    static int end_page = 10;
+
+    static int cnt = 0;
 
     public static void main(String[] args) {
         collectQuestions();
@@ -40,7 +42,9 @@ public class DataCollector {
             // Content-Type:application/json; charset=utf-8
             String json = new String(responseBodyStream.readAllBytes(), StandardCharsets.UTF_8);
             //print the remain quota
-//            System.out.println(json.substring(json.length()-20));
+            System.out.println(json);
+            cnt++;
+            if (cnt%100==0) System.out.println(json);
             JSONObject jsonObject = JSON.parseObject(json);
             return jsonObject.getJSONArray("items");
         } catch (Exception e) {

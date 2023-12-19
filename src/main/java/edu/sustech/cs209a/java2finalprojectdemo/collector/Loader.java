@@ -23,25 +23,30 @@ public class Loader {
         Properties prop = loadDBUser();
         openDB(prop);
         //!!!only create the table in first loop
+//        dropTable();
 //        createTable();
         //change the page parameters in dataCollector
+
         List<Question> questions = collectQuestions();
         insertDataToDatabase(questions,"questions");
         System.out.println(questions.size() + " questions done");
 
+        insertTag(questions);
+        System.out.println("tag done");
+//
         List<Answer> answers = collectAnswers(questions);
         insertDataToDatabase(answers,"answers");
         System.out.println(answers.size() + " answer done");
-
+//
         List<Comment> commentsFromQuestion = collectCommentsFromQuestion(questions);
         insertDataToDatabase(commentsFromQuestion,"comments");
+        System.out.println(commentsFromQuestion.size()+"question comment done");
 
         List<Comment> commentsFromAnswer = collectCommentsFromAnswer(answers);
         insertDataToDatabase(commentsFromAnswer,"comments");
-        System.out.println("comment done");
+        System.out.println(commentsFromAnswer.size()+"answer comment done");
 
-        insertTag(questions);
-        System.out.println("tag done");
+
 
         closeDB();
     }
@@ -133,7 +138,30 @@ public class Loader {
         }
 
     }
+    private static void dropTable(){
+        if (con!=null){
+            try {
+                String projectRoot = System.getProperty("user.dir");
+                Statement statement = con.createStatement();
+                String sqlFilePath = projectRoot+"/src/main/resources/cs209a_drop.sql";
+                BufferedReader reader = new BufferedReader(new FileReader(sqlFilePath));
+                String line;
+                StringBuilder query = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    query.append(line).append(" ");
+                    if (line.endsWith(";")) {
+                        // 执行每个SQL语句
+                        statement.execute(query.toString());
+                        query.setLength(0); // 清空StringBuilder
+                    }
+                }
+                System.out.println("drop tables done");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
+        }
+    }
     private static void createTable(){
         if (con!=null){
             try {

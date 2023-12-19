@@ -1,0 +1,207 @@
+package edu.sustech.cs209a.java2finalprojectdemo.service;
+
+import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
+import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
+import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
+import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
+import edu.sustech.cs209a.java2finalprojectdemo.repository.CommentRepository;
+import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+@Service
+public class ErrorService {
+    @Autowired
+    QuestionRepository questionRepository;
+
+    @Autowired
+    AnswerRepository answerRepository;
+
+    @Autowired
+    CommentRepository commentRepository;
+
+    static HashMap<String,Integer> exceptionsList = new HashMap<>();
+    static HashMap<String,Integer> runtimeExceptionsList = new HashMap<>();
+    static HashMap<String,Integer> checkedExceptionsList = new HashMap<>();
+
+    static HashMap<String,Integer> errorsList = new HashMap<>();
+    static HashMap<String,Integer> fatalErrorList= new HashMap<>();
+    static HashMap<String,Integer> otherErrorList= new HashMap<>();
+
+    static List<Question> questions;
+    static List<Answer> answers;
+    static List<Comment> comments;
+
+
+    public void initial(){
+        questions = questionRepository.findQuestionAboutBug();
+        answers = answerRepository.findAnswerAboutBug();
+        comments = commentRepository.findCommentAboutBug();
+
+        for (Question q : questions) {
+            List<String> list = extractErrorNames(q.getBody(),"Error");
+            addToList(errorsList,list, Math.toIntExact(q.getViewCount()/10000));
+            List<String> list2 = extractErrorNames(q.getBody(),"Exception");
+            addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/10000));
+        }
+        for (Answer a : answers) {
+            List<String> list = extractErrorNames(a.getBody(),"Error");
+            addToList(errorsList,list,1);
+            List<String> list2 = extractErrorNames(a.getBody(),"Exception");
+            addToList(exceptionsList,list2,1);
+        }
+        for (Comment c : comments) {
+            List<String> list = extractErrorNames(c.getBody(),"Error");
+            addToList(errorsList,list,1);
+            List<String> list2 = extractErrorNames(c.getBody(),"Exception");
+            addToList(exceptionsList,list2,1);
+        }
+        System.out.println(errorsList.size()+" "+exceptionsList.size());
+
+        classifyErrors();
+        classifyExceptions();
+    }
+
+    public HashMap<String,Integer> compareWithinCategory(String type){
+        return switch (type) {
+            case "runtime" -> runtimeExceptionsList;
+            case "checked" -> checkedExceptionsList;
+            case "fatal" -> fatalErrorList;
+            case "other" -> otherErrorList;
+            default -> null;
+        };
+    }
+
+    public HashMap<String,Integer> compareBetweenCategory(){
+        HashMap<String,Integer> map = new HashMap<>();
+        map.put("runtime",runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("checked",checkedExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("fatal",fatalErrorList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("other",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
+       return map;
+    }
+
+    public Integer queryBug(String str,String type){
+        HashMap<String,Integer> map = new HashMap<>();
+        if (type.equals("error")) map = errorsList;
+        else if (type.equals("exception")) map = exceptionsList;
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (entry.getKey().equals(str)) {
+               return entry.getValue();
+            }
+        }
+        return 0;
+    }
+
+    public List<Map.Entry<String, Integer>> queryTopN(int n,String type){
+        HashMap<String,Integer> map = new HashMap<>();
+        if (type.equals("error")) map = errorsList;
+        else if (type.equals("exception")) map = exceptionsList;
+
+        List<Map.Entry<String, Integer>> topNItems = map.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(n)
+                .collect(Collectors.toList());
+
+        return topNItems;
+    }
+
+    public void classifyExceptions(){
+        int cnt =0 ;
+        for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
+            if (isKeyInEnum(entry.getKey(), MyRuntimeException.class,MyRuntimeException::getName)) {
+                cnt++;
+                runtimeExceptionsList.put(entry.getKey(),entry.getValue());
+            } else {
+                checkedExceptionsList.put(entry.getKey(),entry.getValue());
+            }
+        }
+        System.out.println(cnt);
+    }
+
+    public void classifyErrors(){
+        int cnt =0 ;
+        for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
+            if (isKeyInEnum(entry.getKey(), MyFatalError.class, MyFatalError::getName)) {
+                cnt++;
+                fatalErrorList.put(entry.getKey(),entry.getValue());
+            } else {
+                otherErrorList.put(entry.getKey(),entry.getValue());
+            }
+        }
+        System.out.println(cnt);
+    }
+
+    public void getAll(){
+//        initial();
+        for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
+            System.out.println(entry.getKey() + " appears " + entry.getValue() + " times");
+        }
+        for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
+            System.out.println(entry.getKey() + " appears " + entry.getValue() + " times");
+        }
+    }
+
+    public static void addToList( HashMap<String,Integer> targetList, List<String> list, int weight) {
+        for (String str : list) {
+            targetList.put(str,targetList.getOrDefault(str, 0) + weight);
+        }
+    }
+
+    public static String formatName(String fullExceptionName) {
+        int lastDotIndex = fullExceptionName.lastIndexOf('.');
+        if (lastDotIndex != -1) {
+            // If there's a period, return the substring after the last period.
+            return fullExceptionName.substring(lastDotIndex + 1);
+        } else {
+            // If there's no period, the fullExceptionName does not contain any package parts, return as is.
+            return fullExceptionName;
+        }
+    }
+
+    public static <T extends Enum<T>> boolean isKeyInEnum(
+            String key,
+            Class<T> enumClass,
+            EnumNameProvider<T> nameProvider) {
+        // Create a set of enum string representations
+        Set<String> enumNames = EnumSet.allOf(enumClass).stream()
+                .map(nameProvider::getName)
+                .collect(Collectors.toSet());
+
+        // Check if the key is in the set
+        return enumNames.contains(key);
+    }
+    @FunctionalInterface
+    public interface EnumNameProvider<T extends Enum<T>> {
+        String getName(T enumConstant);
+    }
+    public static List<String> extractErrorNames(String text,String type) {
+        // Regular expression pattern for fully qualified classname
+        final String patternString = "\\b([a-zA-Z_][\\w\\.]*[\\w])"+type+"\\b";
+
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(patternString);
+
+        // Create a matcher object
+        Matcher matcher = pattern.matcher(text);
+
+        // A Set to hold all unique matches
+        Set<String> matches = new HashSet<>();
+
+        // Loop through and find all matches
+        while (matcher.find()) {
+            // Add each matched group to the list
+            matches.add(formatName(matcher.group()));
+//            matches.add(matcher.group());
+        }
+
+        // Return the list of matches (error names)
+        return new ArrayList<>(matches);
+    }
+}
