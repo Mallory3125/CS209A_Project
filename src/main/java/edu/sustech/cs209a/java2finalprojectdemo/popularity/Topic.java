@@ -107,10 +107,4 @@ public class Topic {
         return "";
     }
 
-//    public static void main(String[] args) {
-//        Topic topic = new Topic();
-//        System.out.println(topic.getTopic("maven"));
-//        System.out.println(topic.getTopic("c++"));
-//    }
-
 }
