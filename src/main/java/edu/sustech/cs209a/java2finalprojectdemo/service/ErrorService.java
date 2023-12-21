@@ -118,24 +118,24 @@ public class ErrorService {
     public void classifyExceptions(){
         int cnt =0 ;
         for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
-            if (isKeyInEnum(entry.getKey(), MyRuntimeException.class,MyRuntimeException::getName)) {
+            if (isKeyInEnum(entry.getKey(), MyRuntimeException.class, MyRuntimeException::getName)) {
                 cnt++;
-                runtimeExceptionsList.put(entry.getKey(),entry.getValue());
+                runtimeExceptionsList.put(entry.getKey(), entry.getValue());
             } else {
-                checkedExceptionsList.put(entry.getKey(),entry.getValue());
+                checkedExceptionsList.put(entry.getKey(), entry.getValue());
             }
         }
         System.out.println(cnt);
     }
 
     public void classifyErrors(){
-        int cnt =0 ;
+        int cnt = 0 ;
         for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
             if (isKeyInEnum(entry.getKey(), MyFatalError.class, MyFatalError::getName)) {
                 cnt++;
-                fatalErrorList.put(entry.getKey(),entry.getValue());
+                fatalErrorList.put(entry.getKey(), entry.getValue());
             } else {
-                otherErrorList.put(entry.getKey(),entry.getValue());
+                otherErrorList.put(entry.getKey(), entry.getValue());
             }
         }
         System.out.println(cnt);
