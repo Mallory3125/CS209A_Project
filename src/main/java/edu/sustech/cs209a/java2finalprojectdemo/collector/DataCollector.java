@@ -20,14 +20,14 @@ public class DataCollector {
     //each key has 10000 max quota
 
     //15 is the maximum number of each day
-    static int pageSize = 2;
-    static int start_page = 8;
-    static int end_page = 10;
+    static int pageSize = 50;
+    static int start_page = 10;
+    static int end_page = 11;
 
     static int cnt = 0;
 
     public static void main(String[] args) {
-        collectQuestions();
+//        collectQuestions();
     }
 
     public static JSONArray loadFromUrl(String url){
@@ -42,7 +42,7 @@ public class DataCollector {
             // Content-Type:application/json; charset=utf-8
             String json = new String(responseBodyStream.readAllBytes(), StandardCharsets.UTF_8);
             //print the remain quota
-            System.out.println(json);
+//            System.out.println(json);
             cnt++;
             if (cnt%100==0) System.out.println(json);
             JSONObject jsonObject = JSON.parseObject(json);

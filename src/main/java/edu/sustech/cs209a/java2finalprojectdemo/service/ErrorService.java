@@ -1,11 +1,14 @@
 package edu.sustech.cs209a.java2finalprojectdemo.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.CommentRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +40,7 @@ public class ErrorService {
     static List<Answer> answers;
     static List<Comment> comments;
 
-
+    @PostConstruct
     public void initial(){
         questions = questionRepository.findQuestionAboutBug();
         answers = answerRepository.findAnswerAboutBug();
@@ -79,10 +82,10 @@ public class ErrorService {
 
     public HashMap<String,Integer> compareBetweenCategory(){
         HashMap<String,Integer> map = new HashMap<>();
-        map.put("runtime",runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("checked",checkedExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("fatal",fatalErrorList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("other",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("runtimeExceptions",runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("checkedExceptions",checkedExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("fatalErrors",fatalErrorList.values().stream().mapToInt(Integer::intValue).sum());
+        map.put("otherErrors",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
        return map;
     }
 

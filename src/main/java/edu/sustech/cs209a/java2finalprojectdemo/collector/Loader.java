@@ -27,24 +27,24 @@ public class Loader {
 //        createTable();
         //change the page parameters in dataCollector
 
-        List<Question> questions = collectQuestions();
-        insertDataToDatabase(questions,"questions");
-        System.out.println(questions.size() + " questions done");
-
-        insertTag(questions);
-        System.out.println("tag done");
+//        List<Question> questions = collectQuestions();
+//        insertDataToDatabase(questions,"questions");
+//        System.out.println(questions.size() + " questions done");
 //
-        List<Answer> answers = collectAnswers(questions);
-        insertDataToDatabase(answers,"answers");
-        System.out.println(answers.size() + " answer done");
+//        insertTag(questions);
+//        System.out.println("tag done");
+////
+//        List<Answer> answers = collectAnswers(questions);
+//        insertDataToDatabase(answers,"answers");
+//        System.out.println(answers.size() + " answer done");
+////
+//        List<Comment> commentsFromQuestion = collectCommentsFromQuestion(questions);
+//        insertDataToDatabase(commentsFromQuestion,"comments");
+//        System.out.println(commentsFromQuestion.size()+"question comment done");
 //
-        List<Comment> commentsFromQuestion = collectCommentsFromQuestion(questions);
-        insertDataToDatabase(commentsFromQuestion,"comments");
-        System.out.println(commentsFromQuestion.size()+"question comment done");
-
-        List<Comment> commentsFromAnswer = collectCommentsFromAnswer(answers);
-        insertDataToDatabase(commentsFromAnswer,"comments");
-        System.out.println(commentsFromAnswer.size()+"answer comment done");
+//        List<Comment> commentsFromAnswer = collectCommentsFromAnswer(answers);
+//        insertDataToDatabase(commentsFromAnswer,"comments");
+//        System.out.println(commentsFromAnswer.size()+"answer comment done");
 
 
 

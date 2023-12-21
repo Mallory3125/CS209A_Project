@@ -10,7 +10,7 @@ import java.util.List;
 public class QuestionDAO {
     private static final String DB_URL = "jdbc:postgresql://" + "localhost" + "/" + "cs209a";
     private static final String DB_USER = "checker";
-    private static final String DB_PASSWORD = "114514";
+    private static final String DB_PASSWORD = "123456";
 
     public List<Question> getQuestions() {
         List<Question> questions = new ArrayList<>();
