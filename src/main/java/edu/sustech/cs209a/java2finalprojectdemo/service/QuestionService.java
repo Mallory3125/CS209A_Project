@@ -1,33 +1,34 @@
-package edu.sustech.cs209a.java2finalprojectdemo.popularity;
+package edu.sustech.cs209a.java2finalprojectdemo.service;
 
-import edu.sustech.cs209a.java2finalprojectdemo.DAO.QuestionDAO;
-import edu.sustech.cs209a.java2finalprojectdemo.DAO.TagDAO;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
-import edu.sustech.cs209a.java2finalprojectdemo.domain.Tag;
-import edu.sustech.cs209a.java2finalprojectdemo.visualization.PieChartDrawer;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
+import edu.sustech.cs209a.java2finalprojectdemo.popularity.Topic;
+import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
-public class TopicRanker {
-    static Topic topic;
-    static Map<String, Double> ranking = new HashMap<>();
-    static List<Map.Entry<String, Double>> sortedList;
+@Service
+public class QuestionService {
+    @Autowired
+    private QuestionRepository questionRepository;
 
+    @Autowired
+    private TagService tagService;
 
-    public static List<Map.Entry<String, Double>> getRankingList() {
+    private static List<Map.Entry<String, Double>> sortedList;
+
+    public List<Question> findAllQuestions() {
+        return questionRepository.findAllQuestions();
+    }
+
+    public List<Map.Entry<String, Double>> getRankingList() {
         if (sortedList != null) {
             return sortedList;
         }
 
-        QuestionDAO questionDAO = new QuestionDAO();
-        TagDAO tagDAO = new TagDAO();
-
-        topic = new Topic();
-
+        Map<String, Double> ranking = new HashMap<>();
+        Topic topic = new Topic();
         List<String> initialKeys = Arrays.asList(
             "Performance", "Tool", "Parameter Passing", "I/O", "Data Structure",
             "Android", "Multithreading", "Exception", "Testing and Assertion",
@@ -38,10 +39,13 @@ public class TopicRanker {
             ranking.putIfAbsent(key, 0.0);
         }
 
-        List<Question> questions = questionDAO.getQuestions();
+        List<Question> questions = this.findAllQuestions();
 
         for (Question question : questions) {
-            for (String tag : tagDAO.getTags(question.getId())) {
+
+            List<String> tags = tagService.getTags(question.getId());
+
+            for (String tag : tags) {
                 try {
                     String currentTopic = topic.getTopic(tag);
                     if (Objects.equals(currentTopic, "")) {
@@ -61,13 +65,9 @@ public class TopicRanker {
         sortedList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
         return sortedList;
-
-//        PieChartDrawer.drawPieChart(sortedList);
-
     }
 
-    public static List<Map.Entry<String, Double>> getTopKTopics(int k) {
-        List<Map.Entry<String, Double>> sortedList = getRankingList();
+    public List<Map.Entry<String, Double>> getTopKTopics(int k) {
         List<Map.Entry<String, Double>> topTopics = new ArrayList<>();
 
         for (int i = 0; i < Math.min(k, 10); i++) {
@@ -82,38 +82,14 @@ public class TopicRanker {
         return topTopics;
     }
 
-    public static Double getHeatByTopic(String givenTopic) {
-        List<Map.Entry<String, Double>> sortedList = getRankingList();
-
+    public Double getHeatByTopic(String givenTopic) {
         for (Map.Entry<String, Double> entry : sortedList) {
             String topic = entry.getKey();
             Double heat = entry.getValue();
-
             if (Objects.equals(topic, givenTopic)) {
                 return heat;
             }
-
         }
-
         return 0.0;
     }
-
-    public static void main(String[] args) {
-        List<Map.Entry<String, Double>> list = getTopKTopics(3);
-        for (Map.Entry<String, Double> entry : list) {
-            String topic = entry.getKey();
-            Double heat = entry.getValue();
-
-            System.out.println("Topic: " + topic + ", Heat: " + heat);
-        }
-
-        System.out.println();
-
-        String topic = "I/O";
-
-        System.out.println("Topic: " + topic + ", Heat: " + getHeatByTopic(topic));
-
-    }
-
-
 }
