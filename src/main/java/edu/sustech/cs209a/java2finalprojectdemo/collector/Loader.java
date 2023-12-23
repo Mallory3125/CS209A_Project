@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.beans.Transient;
@@ -18,6 +20,8 @@ import static edu.sustech.cs209a.java2finalprojectdemo.collector.DataCollector.*
 public class Loader {
     private static Connection con = null;
     private static Statement stmt = null;
+
+    private static final Logger logger = LoggerFactory.getLogger(Loader.class);
 
     public static void main(String[] args) {
         Properties prop = loadDBUser();
@@ -92,6 +96,7 @@ public class Loader {
             }
 
         } catch (Exception e) {
+            logger.error("An error occurred during the operation", e);
             throw new RuntimeException(e);
         }
     }
@@ -134,12 +139,13 @@ public class Loader {
 //                if (j%100==0) System.out.println(tableName+": "+j);
             }
         } catch (Exception e) {
+            logger.error("An error occurred during the operation", e);
             throw new RuntimeException(e);
         }
 
     }
     private static void dropTable(){
-        if (con!=null){
+        if (con != null){
             try {
                 String projectRoot = System.getProperty("user.dir");
                 Statement statement = con.createStatement();
@@ -155,15 +161,16 @@ public class Loader {
                         query.setLength(0); // 清空StringBuilder
                     }
                 }
-                System.out.println("drop tables done");
+                logger.info("Dropping tables has done");
             } catch (Exception e) {
+                logger.error("An error occurred during the operation", e);
                 throw new RuntimeException(e);
             }
 
         }
     }
     private static void createTable(){
-        if (con!=null){
+        if (con != null){
             try {
                 String projectRoot = System.getProperty("user.dir");
                 Statement statement = con.createStatement();
@@ -179,8 +186,9 @@ public class Loader {
                         query.setLength(0); // 清空StringBuilder
                     }
                 }
-                System.out.println("create tables done");
+                logger.info("Creating tables has done");
             } catch (Exception e) {
+                logger.error("An error occurred during the operation", e);
                 throw new RuntimeException(e);
             }
 
@@ -193,7 +201,7 @@ public class Loader {
             properties.load(new InputStreamReader(new FileInputStream(projectRoot+"/src/main/resources/dbUser.properties")));
             return properties;
         } catch (IOException e) {
-            System.err.println("can not find db user file");
+            logger.error("An error occurred during the operation", e);
             throw new RuntimeException(e);
         }
     }
@@ -201,6 +209,7 @@ public class Loader {
         try {
             Class.forName("org.postgresql.Driver");
         } catch (Exception e) {
+            logger.error("An error occurred during the operation", e);
             System.err.println("Cannot find the Postgres driver. Check CLASSPATH.");
             System.exit(1);
         }
@@ -210,11 +219,12 @@ public class Loader {
             con = DriverManager.getConnection(url, prop);
             con.setSchema(prop.getProperty("schema"));// choose the schema, default is public
             if (con != null) {
-                System.out.println("Successfully connected to the database "
-                        + prop.getProperty("database") +" scheme "+prop.getProperty("schema")+ " as " + prop.getProperty("user"));
+                logger.info("Successfully connected to the database "
+                    + prop.getProperty("database") +" scheme "+prop.getProperty("schema")+ " as " + prop.getProperty("user"));
                 stmt = con.createStatement();
             }
         } catch (SQLException e) {
+            logger.error("An error occurred during the operation", e);
             System.err.println("Database connection failed");
             System.err.println(e.getMessage());
             System.exit(1);
@@ -229,7 +239,8 @@ public class Loader {
                 con.close();
                 con = null;
                 System.out.println("closed database");
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                logger.error("An error occurred during the operation", e);
             }
         }
     }

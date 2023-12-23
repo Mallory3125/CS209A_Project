@@ -11,7 +11,7 @@
     <appender name="ConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                %black(%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}) %highlight(%-5level) %magenta(${PID}) --- [%15.15(%thread)] %cyan(%-40.40logger{39}) : %msg%n
+                %white(%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}) %highlight(%-5level) %magenta(${PID}) --- [%15.15(%thread)] %cyan(%-40.40logger{39}) : %msg%n
             </pattern>
         </encoder>
     </appender>

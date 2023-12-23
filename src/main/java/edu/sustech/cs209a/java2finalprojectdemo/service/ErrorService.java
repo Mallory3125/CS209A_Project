@@ -45,6 +45,8 @@ public class ErrorService {
 
     @PostConstruct
     public void initial(){
+        logger.info("Initialization of Error Service started");
+
         questions = questionRepository.findQuestionAboutBug();
         answers = answerRepository.findAnswerAboutBug();
         comments = commentRepository.findCommentAboutBug();
@@ -67,11 +69,10 @@ public class ErrorService {
             List<String> list2 = extractErrorNames(c.getBody(),"Exception");
             addToList(exceptionsList,list2,1);
         }
-        System.out.println(errorsList.size()+" "+exceptionsList.size());
-
         classifyErrors();
         classifyExceptions();
-        logger.info(String.format("finish initialize: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));
+
+        logger.info(String.format("Initialization finished: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));
     }
 
     public HashMap<String,Integer> compareWithinCategory(String type){
@@ -94,14 +95,17 @@ public class ErrorService {
     }
 
     public Integer queryBug(String str,String type){
+        logger.info("Starting querying bugs");
         HashMap<String,Integer> map = new HashMap<>();
         if (type.equals("error")) map = errorsList;
         else if (type.equals("exception")) map = exceptionsList;
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
             if (entry.getKey().equals(str)) {
-               return entry.getValue();
+                logger.info("Successfully completed querying bugs about " + str);
+                return entry.getValue();
             }
         }
+        logger.debug("No fitted bugs queried");
         return 0;
     }
 
@@ -110,39 +114,31 @@ public class ErrorService {
         if (type.equals("error")) map = errorsList;
         else if (type.equals("exception")) map = exceptionsList;
 
-        List<Map.Entry<String, Integer>> topNItems = map.entrySet()
+        return map.entrySet()
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .limit(n)
                 .collect(Collectors.toList());
-
-        return topNItems;
     }
 
     public void classifyExceptions(){
-        int cnt =0 ;
         for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
             if (isKeyInEnum(entry.getKey(), MyRuntimeException.class, MyRuntimeException::getName)) {
-                cnt++;
                 runtimeExceptionsList.put(entry.getKey(), entry.getValue());
             } else {
                 checkedExceptionsList.put(entry.getKey(), entry.getValue());
             }
         }
-        System.out.println(cnt);
     }
 
     public void classifyErrors(){
-        int cnt = 0 ;
         for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
             if (isKeyInEnum(entry.getKey(), MyFatalError.class, MyFatalError::getName)) {
-                cnt++;
                 fatalErrorList.put(entry.getKey(), entry.getValue());
             } else {
                 otherErrorList.put(entry.getKey(), entry.getValue());
             }
         }
-        System.out.println(cnt);
     }
 
     public void getAll(){

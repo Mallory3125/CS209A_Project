@@ -3,6 +3,8 @@ package edu.sustech.cs209a.java2finalprojectdemo.service;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
 import edu.sustech.cs209a.java2finalprojectdemo.helper.Topic;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ public class QuestionService {
     @Autowired
     private TagService tagService;
 
+    private static final Logger logger = LoggerFactory.getLogger(QuestionService.class);
+
     private static List<Map.Entry<String, Double>> sortedList;
 
     public List<Question> findAllQuestions() {
@@ -23,7 +27,10 @@ public class QuestionService {
     }
 
     public List<Map.Entry<String, Double>> getRankingList() {
+        logger.info("Starting the method getRankingList in Question Service");
+
         if (sortedList != null) {
+            logger.debug("Sorted ranking list of topics already exists");
             return sortedList;
         }
 
@@ -56,6 +63,7 @@ public class QuestionService {
                     ranking.put(currentTopic, question.getAnswerCount() + question.getScore() / 1e1 + question.getViewCount() / 1e3 + ranking.get(currentTopic));
 
                 } catch (Exception e) {
+                    logger.error("An error occurred during the operation", e);
                     e.getStackTrace();
                 }
             }
@@ -69,6 +77,10 @@ public class QuestionService {
 
     public List<Map.Entry<String, Double>> getTopKTopics(int k) {
         List<Map.Entry<String, Double>> topTopics = new ArrayList<>();
+
+        if(k > 10 || k < 1) {
+            logger.warn("The given number of top topics exceeds the program range, which is " + k);
+        }
 
         for (int i = 0; i < Math.min(k, 10); i++) {
             if (i >= sortedList.size()) {
@@ -90,6 +102,7 @@ public class QuestionService {
                 return heat;
             }
         }
+        logger.debug("The heat of given topic does not exist then returned 0");
         return 0.0;
     }
 }
