@@ -20,7 +20,7 @@ import java.util.Map;
 @RequestMapping("/bug")
 public class BugController {
     @Autowired
-    ErrorService questionService;
+    ErrorService errorService;
 //
 //    @GetMapping("/")
 //    public void test(){
@@ -30,13 +30,13 @@ public class BugController {
     @GetMapping("/comparewithin")
     public HashMap<String,Integer> compareWithin(@RequestParam(value = "type") String type){
         System.out.println("comarewithin");
-        return questionService.compareWithinCategory(type);
+        return errorService.compareWithinCategory(type);
     }
 
     @GetMapping("/comparebetween")
     public void compareBetween(HttpServletResponse response) throws IOException {
         System.out.println("comparebetween");
-        HashMap<String,Integer> map = questionService.compareBetweenCategory();
+        HashMap<String,Integer> map = errorService.compareBetweenCategory();
         response.setContentType("application/json");
         response.getWriter().write(JSON.toJSONString(map));
     }
@@ -44,14 +44,14 @@ public class BugController {
     public Integer queryBug(@RequestParam(value = "name") String name,
                             @RequestParam(value = "type") String type){
         System.out.println("querybug");
-        return questionService.queryBug(name, type);
+        return errorService.queryBug(name, type);
     }
 
     @GetMapping("/gettopn")
     public List<Map.Entry<String, Integer>> queryTopN(@RequestParam(value = "n") int n,
                                                       @RequestParam(value = "type") String type){
         System.out.println("gettopn");
-        return questionService.queryTopN(n, type);
+        return errorService.queryTopN(n, type);
     }
 
 

@@ -11,8 +11,8 @@ import java.util.List;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     Question searchQuestionById(Long id);
-    @Query(value = "select * from questions where body ILIKE :str ", nativeQuery = true)
-    List<Question> findByBodyILike(String str);
+    @Query(value = "select id from questions where body ILIKE :str ", nativeQuery = true)
+    List<Long> findIdByBodyILike(String str);
 
     @Query(value = "select * from questions where body ILIKE '%error%' or body ILIKE  '%exception%'", nativeQuery = true)
     List<Question> findQuestionAboutBug();

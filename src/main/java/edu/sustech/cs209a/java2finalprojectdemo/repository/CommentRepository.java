@@ -10,8 +10,8 @@ import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long>{
-    @Query(value ="select * from comments where body ILIKE :str",nativeQuery = true)
-    List<Comment> findbybodyilike(String str);
+    @Query(value ="select post_id from comments where body ILIKE :str",nativeQuery = true)
+    List<Long> findIdbybodyilike(String str);
 
     @Query(value ="select * from comments where body ILIKE '%error%' or body ILIKE  '%exception%'",nativeQuery = true)
     List<Comment> findCommentAboutBug();

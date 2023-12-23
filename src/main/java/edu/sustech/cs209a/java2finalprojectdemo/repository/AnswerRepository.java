@@ -11,8 +11,8 @@ import java.util.List;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
-    @Query(value ="select * from answers where body ILIKE :str",nativeQuery = true)
-    List<Answer> findbybodyilike(String str);
+    @Query(value ="select question_id from answers where body ILIKE :str",nativeQuery = true)
+    List<Long> findIdbybodyilike(String str);
 
     @Query(value ="select * from answers where body ILIKE '%error%' or body ILIKE  '%exception%'",nativeQuery = true)
     List<Answer> findAnswerAboutBug();

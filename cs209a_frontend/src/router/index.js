@@ -1,14 +1,25 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import BugView from '../views/BugView.vue'
-
+import BugView from '@/views/BugView.vue'
+import RelatedTopicView from '@/views/RelatedTopicView.vue'
+import TopicView from '@/views/TopicView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/bug',
-      name: 'home',
+      name: 'bug',
       component:BugView
     },
+    {
+        path: '/related',
+        name: 'relatedTopic',
+        component:RelatedTopicView
+      },
+      {
+        path: '/tpoic',
+        name: 'topic',
+        component:TopicView
+      },
     {
       path: '/about',
       name: 'about',

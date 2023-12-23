@@ -1,4 +1,4 @@
-package edu.sustech.cs209a.java2finalprojectdemo.service;
+package edu.sustech.cs209a.java2finalprojectdemo.helper;
 
 /*
  * List all possible runtimeException type

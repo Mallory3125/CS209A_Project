@@ -1,14 +1,16 @@
 package edu.sustech.cs209a.java2finalprojectdemo.service;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
+import edu.sustech.cs209a.java2finalprojectdemo.helper.MyFatalError;
+import edu.sustech.cs209a.java2finalprojectdemo.helper.MyRuntimeException;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.CommentRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class ErrorService {
     @Autowired
     CommentRepository commentRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(ErrorService.class);
     static HashMap<String,Integer> exceptionsList = new HashMap<>();
     static HashMap<String,Integer> runtimeExceptionsList = new HashMap<>();
     static HashMap<String,Integer> checkedExceptionsList = new HashMap<>();
@@ -48,9 +51,9 @@ public class ErrorService {
 
         for (Question q : questions) {
             List<String> list = extractErrorNames(q.getBody(),"Error");
-            addToList(errorsList,list, Math.toIntExact(q.getViewCount()/10000));
+            addToList(errorsList,list, Math.toIntExact(q.getViewCount()/50000));
             List<String> list2 = extractErrorNames(q.getBody(),"Exception");
-            addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/10000));
+            addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/50000));
         }
         for (Answer a : answers) {
             List<String> list = extractErrorNames(a.getBody(),"Error");
@@ -68,6 +71,7 @@ public class ErrorService {
 
         classifyErrors();
         classifyExceptions();
+        logger.info(String.format("finish initialize: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));
     }
 
     public HashMap<String,Integer> compareWithinCategory(String type){

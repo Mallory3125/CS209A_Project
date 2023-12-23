@@ -1,7 +1,7 @@
 package edu.sustech.cs209a.java2finalprojectdemo.service;
 
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
-import edu.sustech.cs209a.java2finalprojectdemo.popularity.Topic;
+import edu.sustech.cs209a.java2finalprojectdemo.helper.Topic;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

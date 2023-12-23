@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Define a variable for the process ID -->
+    <property scope="context" name="PID" value="???"/>
+
+    <!-- Attempt to get actual process id -->
+    <springProperty scope="context" name="PID" source="PID"/>
+
+    <!-- Console Appender -->
+    <appender name="ConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %black(%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}) %highlight(%-5level) %magenta(${PID}) --- [%15.15(%thread)] %cyan(%-40.40logger{39}) : %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- Apply the ConsoleAppender to the root logger -->
+    <root level="INFO">
+        <appender-ref ref="ConsoleAppender"/>
+    </root>
+
+</configuration>
