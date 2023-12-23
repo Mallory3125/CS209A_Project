@@ -34,3 +34,4 @@ build/
 src/main/resources/dbUser.properties
 src/main/resources/application.properties
 src/main/resources/metrics.txt
+*.properties
