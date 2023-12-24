@@ -70,6 +70,25 @@ public class ErrorService {
             addToList(exceptionsList,list2,1);
         }
         classifyErrors();
+        List<Map.Entry<String, Integer>> topNItems = fatalErrorList.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .toList();
+
+//        for ( Map.Entry<String, Integer> e: topNItems) {
+//            System.out.println(e.toString());
+//        }
+
+        List<Map.Entry<String, Integer>> topNItem = otherErrorList.entrySet()
+                .stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .toList();
+//        System.out.println("--------------");
+//        for ( Map.Entry<String, Integer> e: topNItem) {
+//            System.out.println(e.toString());
+//        }
+
+
         classifyExceptions();
 
         logger.info(String.format("Initialization finished: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));

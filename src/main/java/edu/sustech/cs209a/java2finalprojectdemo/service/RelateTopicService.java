@@ -1,14 +1,13 @@
 package edu.sustech.cs209a.java2finalprojectdemo.service;
 
 import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
-import edu.sustech.cs209a.java2finalprojectdemo.repository.CommentRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionTagsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RelateTopicService {
@@ -22,7 +21,7 @@ public class RelateTopicService {
     QuestionTagsRepository questionTagsRepository;
 
 
-    public HashMap<String,Integer> queryRelateTopic(String input){
+    public List<Map.Entry<String, Double>> queryRelateTopic(String input){
         HashMap<String,Integer> relatedTopics = query(input);
         List<String> stringList = List.of(input.split("\\s+"));
         if (stringList.size()!=1) { //if not a word
@@ -34,7 +33,19 @@ public class RelateTopicService {
         relatedTopics.remove("java");
         relatedTopics.remove(input);
         relatedTopics.remove(input.toLowerCase());
-        return relatedTopics;
+
+        int sum = relatedTopics.values().stream().mapToInt(Integer::intValue).sum();
+
+        // 创建包含每个话题和它们百分比的列表
+        List<Map.Entry<String, Double>> percentages = new ArrayList<>();
+        relatedTopics.forEach((topic, count) -> {
+            double percentage = 100.0 * count / sum;
+            // 使用 SimpleEntry 而不是 HashMap
+            Map.Entry<String, Double> topicPercentage = new AbstractMap.SimpleEntry<>(topic, percentage);
+            percentages.add(topicPercentage);
+        });
+        percentages.sort((entry1, entry2) -> Double.compare(entry2.getValue(), entry1.getValue()));
+        return percentages;
     }
 
     public HashMap<String,Integer> query(String input){

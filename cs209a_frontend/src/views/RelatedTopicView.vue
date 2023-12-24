@@ -21,7 +21,8 @@ const baseurl = "http://127.0.0.1:8090";
 const searchTopic = ref(null);
 
 const wordCloudChart = ref(null);
-function drawPieChart(chartData, total) {
+function drawWordCloudChart(chartData) {
+  console.log(chartData);
   const chart = echarts.init(wordCloudChart.value);
   chart.resize({ height: "400px" });
   chart.setOption({
@@ -32,62 +33,26 @@ function drawPieChart(chartData, total) {
     tooltip: {
       trigger: "item",
       formatter: function (params) {
-        console.log(params);
-        const value = params.data.value;
-        const percent = ((value / total) * 100).toFixed(2);
-        return `${params.seriesName}<br/>${params.marker}${params.name}: (${percent}%)`;
+        return `${params.seriesName}<br/>${params.marker}${params.name}: (${params.value}%)`;
       },
     },
     series: [
       {
         name: "相关性",
         type: "wordCloud",
-
-        // The shape of the "cloud" to draw. Can be any polar equation represented as a
-        // callback function, or a keyword present. Available presents are circle (default),
-        // cardioid (apple or heart shape curve, the most known polar equation), diamond (
-        // alias of square), triangle-forward, triangle, (alias of triangle-upright, pentagon, and star.
-
         shape: "circle",
-
-        // Folllowing left/top/width/height/right/bottom are used for positioning the word cloud
-        // Default to be put in the center and has 75% x 80% size.
-
         left: "center",
         top: "center",
-        width: "70%",
-        height: "80%",
+        width: "80%",
+        height: "90%",
         right: null,
         bottom: null,
-
-        // Text size range which the value in data will be mapped to.
-        // Default to have minimum 12px and maximum 60px size.
-
         sizeRange: [12, 60],
-
-        // Text rotation range and step in degree. Text will be rotated randomly in range [-90, 90] by rotationStep 45
-
         rotationRange: [-90, 90],
         rotationStep: 45,
-
-        // size of the grid in pixels for marking the availability of the canvas
-        // the larger the grid size, the bigger the gap between words.
-
         gridSize: 8,
-
-        // set to true to allow word to be drawn partly outside of the canvas.
-        // Allow word bigger than the size of the canvas to be drawn
-        // This option is supported since echarts-wordcloud@2.1.0
         drawOutOfBound: false,
-
-        // if the font size is too large for the text to be displayed,
-        // whether to shrink the text. If it is set to false, the text will
-        // not be rendered. If it is set to true, the text will be shrinked.
-        // This option is supported since echarts-wordcloud@2.1.0
-        shrinkToFit: false,
-
-        // If perform layout animation.
-        // NOTE disable it will lead to UI blocking when there is lots of words.
+        shrinkToFit: true,
         layoutAnimation: true,
 
         // Global text style
@@ -125,18 +90,28 @@ function drawPieChart(chartData, total) {
 
 const fetchData = async () => {
   try {
-    const response = await fetch(
-      `${baseurl}/related/search?topic=${searchTopic.value}`
-    );
-    const responseData = await response.json();
-    console.log(responseData);
-    let total = 0;
+    if (searchTopic.value != null) {
+      const response = await fetch(
+        `${baseurl}/related/search?topic=${searchTopic.value}`
+      );
+      const responseData = await response.json();
 
-    Object.values(responseData).forEach((value) => {
-      total += value;
-    });
+      const formattedData = ref(
+        responseData
+          .map((item) => {
+            const key = Object.keys(item)[0];
+            const value = item[key];
+            return {
+              value: value,
+              name: key,
+            };
+          })
+          .filter((item) => item.value >= 0.1)
+      );
 
-    drawPieChart(transformErrorMap(responseData), total);
+      drawWordCloudChart(formattedData.value);
+    }
+    // drawPieChart(transformErrorMap(responseData), total);
   } catch (error) {
     console.error("Error:", error);
   }
