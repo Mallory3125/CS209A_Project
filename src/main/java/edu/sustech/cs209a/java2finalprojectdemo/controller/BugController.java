@@ -16,45 +16,32 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Controller
 @RequestMapping("/bug")
 public class BugController {
     @Autowired
     ErrorService errorService;
-//
-//    @GetMapping("/")
-//    public void test(){
-//        questionService.initial();
-//    }
 
-    @GetMapping("/comparewithin")
-    public HashMap<String,Integer> compareWithin(@RequestParam(value = "type") String type){
-        System.out.println("comarewithin");
+    @GetMapping("/compare/within-category")
+    public Map<String, Integer> compareWithinCategory(@RequestParam(value = "type") String type) {
         return errorService.compareWithinCategory(type);
     }
 
-    @GetMapping("/comparebetween")
-    public void compareBetween(HttpServletResponse response) throws IOException {
-        System.out.println("comparebetween");
-        HashMap<String,Integer> map = errorService.compareBetweenCategory();
-        response.setContentType("application/json");
-        response.getWriter().write(JSON.toJSONString(map));
+    @GetMapping("/compare/between-categories")
+    public Map<String, Integer> compareBetweenCategories() {
+        return errorService.compareBetweenCategory();
     }
-    @GetMapping("/querybug")
-    public Integer queryBug(@RequestParam(value = "name") String name,
-                            @RequestParam(value = "type") String type){
-        System.out.println("querybug");
+
+    @GetMapping("/heat")
+    public Integer queryBugCount(@RequestParam(value = "name") String name,
+                                 @RequestParam(value = "type") String type) {
         return errorService.queryBug(name, type);
     }
 
-    @GetMapping("/gettopn")
-    public List<Map.Entry<String, Integer>> queryTopN(@RequestParam(value = "n") int n,
-                                                      @RequestParam(value = "type") String type){
-        System.out.println("gettopn");
+    @GetMapping("/top")
+    public List<Map.Entry<String, Integer>> queryTopErrors(@RequestParam(value = "n") int n,
+                                                           @RequestParam(value = "type") String type) {
         return errorService.queryTopN(n, type);
     }
-
-
 //
 //    @GetMapping({"/", "/demoPage"})
 //    public String demoPage() {

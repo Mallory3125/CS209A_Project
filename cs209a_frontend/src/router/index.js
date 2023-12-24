@@ -16,12 +16,12 @@ const router = createRouter({
         component:RelatedTopicView
       },
       {
-        path: '/tpoic',
+        path: '/topic',
         name: 'topic',
         component:TopicView
       },
     {
-      path: '/about',
+      path: '/',
       name: 'about',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
