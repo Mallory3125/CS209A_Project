@@ -3,6 +3,8 @@ package edu.sustech.cs209a.java2finalprojectdemo.service;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionTagsRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +22,12 @@ public class RelateTopicService {
     @Autowired
     QuestionTagsRepository questionTagsRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(RelateTopicService.class);
+
 
     public List<Map.Entry<String, Double>> queryRelateTopic(String input){
+        logger.info("Querying related topics for input: {}", input);
+
         HashMap<String,Integer> relatedTopics = query(input);
         List<String> stringList = List.of(input.split("\\s+"));
         if (stringList.size()!=1) { //if not a word
@@ -45,20 +51,28 @@ public class RelateTopicService {
             percentages.add(topicPercentage);
         });
         percentages.sort((entry1, entry2) -> Double.compare(entry2.getValue(), entry1.getValue()));
+
+        logger.info("Related topics queried successfully");
         return percentages;
     }
 
-    public HashMap<String,Integer> query(String input){
-        input = "%"+input+"%";
+    public HashMap<String,Integer> query(String str){
+        logger.info("Performing query for input: {}", str);
+
+        String input = "%" + str + "%";
         HashMap<String,Integer> relatedTopics = new HashMap<>();
         List<Long> questions = questionRepository.findIdByBodyILike(input);
         addToList(relatedTopics,questions,5);
         List<Long> answers = answerRepository.findIdbybodyilike(input);
         addToList(relatedTopics,answers,1);
+
+        logger.debug("Found {} questions and {} answers", questions.size(), answers.size());
         return relatedTopics;
     }
 
     public void addToList(HashMap<String,Integer> targetList, List<Long> list, int weight) {
+        logger.debug("Adding tags to targetList for list of size: {}", list.size());
+
         for (Long i : list) {
             List<String> tmp = questionTagsRepository.findTagsByQuestionId(i);
             for (String str : tmp) {

@@ -23,6 +23,7 @@ public class QuestionService {
     private static List<Map.Entry<String, Double>> sortedList;
 
     public List<Question> findAllQuestions() {
+        logger.info("Finding all questions");
         return questionRepository.findAllQuestions();
     }
 
@@ -64,7 +65,6 @@ public class QuestionService {
 
                 } catch (Exception e) {
                     logger.error("An error occurred during the operation", e);
-                    e.getStackTrace();
                 }
             }
         }
@@ -72,6 +72,7 @@ public class QuestionService {
         sortedList = new ArrayList<>(ranking.entrySet());
         sortedList.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
+        logger.info("Ranking list generated");
         return sortedList;
     }
 
@@ -91,6 +92,7 @@ public class QuestionService {
             topTopics.add(entry);
         }
 
+        logger.debug("Returning top {} topics", topTopics.size());
         return topTopics;
     }
 
@@ -99,6 +101,7 @@ public class QuestionService {
             String topic = entry.getKey();
             Double heat = entry.getValue();
             if (Objects.equals(topic, givenTopic)) {
+                logger.debug("Heat of topic '{}' found: {}", givenTopic, heat);
                 return heat;
             }
         }

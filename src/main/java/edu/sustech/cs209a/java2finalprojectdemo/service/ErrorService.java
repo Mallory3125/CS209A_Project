@@ -75,19 +75,10 @@ public class ErrorService {
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .toList();
 
-//        for ( Map.Entry<String, Integer> e: topNItems) {
-//            System.out.println(e.toString());
-//        }
-
         List<Map.Entry<String, Integer>> topNItem = otherErrorList.entrySet()
                 .stream()
                 .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
                 .toList();
-//        System.out.println("--------------");
-//        for ( Map.Entry<String, Integer> e: topNItem) {
-//            System.out.println(e.toString());
-//        }
-
 
         classifyExceptions();
 
@@ -133,11 +124,15 @@ public class ErrorService {
         if (type.equals("error")) map = errorsList;
         else if (type.equals("exception")) map = exceptionsList;
 
-        return map.entrySet()
-                .stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .limit(n)
-                .collect(Collectors.toList());
+        logger.info(String.format("Querying top %d %s:", n, type));
+        List<Map.Entry<String, Integer>> topNItems = map.entrySet()
+            .stream()
+            .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+            .limit(n)
+            .collect(Collectors.toList());
+
+        logger.info(String.format("Querying for top %d %s completed", n, type));
+        return topNItems;
     }
 
     public void classifyExceptions(){
@@ -148,6 +143,8 @@ public class ErrorService {
                 checkedExceptionsList.put(entry.getKey(), entry.getValue());
             }
         }
+
+        logger.info("Classification of exceptions completed");
     }
 
     public void classifyErrors(){
@@ -158,16 +155,8 @@ public class ErrorService {
                 otherErrorList.put(entry.getKey(), entry.getValue());
             }
         }
-    }
 
-    public void getAll(){
-//        initial();
-        for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
-            System.out.println(entry.getKey() + " appears " + entry.getValue() + " times");
-        }
-        for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
-            System.out.println(entry.getKey() + " appears " + entry.getValue() + " times");
-        }
+        logger.info("Classification of errors completed");
     }
 
     public static void addToList( HashMap<String,Integer> targetList, List<String> list, int weight) {

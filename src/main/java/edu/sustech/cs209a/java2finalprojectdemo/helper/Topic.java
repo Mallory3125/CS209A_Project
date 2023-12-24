@@ -1,5 +1,8 @@
 package edu.sustech.cs209a.java2finalprojectdemo.helper;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +10,8 @@ import java.util.Map;
 public class Topic {
 
     Map<String, List<String>> topics = new HashMap<>();
+
+    private final Logger logger = LoggerFactory.getLogger(Topic.class);
 
     public Topic() {
         topics.put("Performance", List.of(
@@ -95,16 +100,20 @@ public class Topic {
     }
 
     public String getTopic(String tag) {
-        for (Map.Entry<String, List<String>> entry : topics.entrySet()) {
-            String topic = entry.getKey();
-            List<String> tags = entry.getValue();
+        try {
+            for (Map.Entry<String, List<String>> entry : topics.entrySet()) {
+                String topic = entry.getKey();
+                List<String> tags = entry.getValue();
 
-            if (tags.contains(tag)) {
-                return topic;
+                if (tags.contains(tag)) {
+                    return topic;
+                }
             }
+        } catch (NullPointerException e) {
+            logger.error("An null pointer exception occurred during the operation", e);;
+        } catch (Exception e) {
+            logger.error("An error occurred during the operation", e);
         }
-
         return "";
     }
-
 }
