@@ -17,22 +17,9 @@
         </encoder>
     </appender>
 
-    <appender name="DebugAppender" class="ch.qos.logback.core.ConsoleAppender">
-        <file>D:\CS\CS209A\Project\CS209A_Project\logs\DebugFile.log</file> <!-- 替换为你想要保存日志的文件路径 -->
-        <encoder>
-            <pattern>
-                %white(%date{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}) %highlight(%-5level) %magenta(${PID}) --- [%15.15(%thread)] %cyan(%-40.40logger{39}) : %msg%n
-            </pattern>
-        </encoder>
-    </appender>
-
     <!-- Apply the ConsoleAppender to the root logger -->
     <root level="INFO">
         <appender-ref ref="ConsoleAppender"/>
-    </root>
-
-    <root level="DEBUG">
-        <appender-ref ref="DebugAppender"/>
     </root>
 
 </configuration>
