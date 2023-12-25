@@ -1,6 +1,8 @@
 package edu.sustech.cs209a.java2finalprojectdemo.helper;
 
-public enum VirtualMachineError {
+public enum MyVirtualMachineError {
+
+    VIRTUAL_MACHINE_ERROR("VirtualMachineError"),
     INTERNAL_ERROR("InternalError"),
     OUT_OF_MEMORY_ERROR("OutOfMemoryError"),
     STACK_OVER_FLOW_ERROR("StackOverFlowError"),
@@ -10,7 +12,7 @@ public enum VirtualMachineError {
     private final String errorName;
 
 
-    VirtualMachineError(String errorName) {
+    MyVirtualMachineError(String errorName) {
         this.errorName = errorName;
     }
 

@@ -3,8 +3,7 @@ package edu.sustech.cs209a.java2finalprojectdemo.service;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Answer;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Comment;
 import edu.sustech.cs209a.java2finalprojectdemo.domain.Question;
-import edu.sustech.cs209a.java2finalprojectdemo.helper.MyFatalError;
-import edu.sustech.cs209a.java2finalprojectdemo.helper.MyRuntimeException;
+import edu.sustech.cs209a.java2finalprojectdemo.helper.*;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.AnswerRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.CommentRepository;
 import edu.sustech.cs209a.java2finalprojectdemo.repository.QuestionRepository;
@@ -33,10 +32,12 @@ public class ErrorService {
     private static final Logger logger = LoggerFactory.getLogger(ErrorService.class);
     static HashMap<String,Integer> exceptionsList = new HashMap<>();
     static HashMap<String,Integer> runtimeExceptionsList = new HashMap<>();
-    static HashMap<String,Integer> checkedExceptionsList = new HashMap<>();
+    static HashMap<String,Integer> ioExceptionsList = new HashMap<>();
+    static HashMap<String,Integer> otherExceptionsList= new HashMap<>();
 
     static HashMap<String,Integer> errorsList = new HashMap<>();
-    static HashMap<String,Integer> fatalErrorList= new HashMap<>();
+    static HashMap<String,Integer> linkageErrorList= new HashMap<>();
+    static HashMap<String,Integer> VMErrorList= new HashMap<>();
     static HashMap<String,Integer> otherErrorList= new HashMap<>();
 
     static List<Question> questions;
@@ -70,16 +71,6 @@ public class ErrorService {
             addToList(exceptionsList,list2,1);
         }
         classifyErrors();
-        List<Map.Entry<String, Integer>> topNItems = fatalErrorList.entrySet()
-                .stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .toList();
-
-        List<Map.Entry<String, Integer>> topNItem = otherErrorList.entrySet()
-                .stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .toList();
-
         classifyExceptions();
 
         logger.info(String.format("Initialization finished: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));
@@ -87,20 +78,28 @@ public class ErrorService {
 
     public HashMap<String,Integer> compareWithinCategory(String type){
         return switch (type) {
-            case "runtime" -> runtimeExceptionsList;
-            case "checked" -> checkedExceptionsList;
-            case "fatal" -> fatalErrorList;
-            case "other" -> otherErrorList;
+            case "RuntimeException" -> runtimeExceptionsList;
+            case "IOException" -> ioExceptionsList;
+            case "otherException" -> otherExceptionsList;
+            case "VirtualMachineError" -> VMErrorList;
+            case "LinkageError" -> linkageErrorList;
+            case "otherError" -> otherErrorList;
             default -> null;
         };
     }
 
-    public HashMap<String,Integer> compareBetweenCategory(){
+    public HashMap<String,Integer> compareBetweenCategory(String type){
         HashMap<String,Integer> map = new HashMap<>();
-        map.put("runtimeExceptions",runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("checkedExceptions",checkedExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("fatalErrors",fatalErrorList.values().stream().mapToInt(Integer::intValue).sum());
-        map.put("otherErrors",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
+        if(type.equals("error")){
+            map.put("VirtualMachineError",VMErrorList.values().stream().mapToInt(Integer::intValue).sum());
+            map.put("LinkageError",linkageErrorList.values().stream().mapToInt(Integer::intValue).sum());
+            map.put("otherError",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
+        }
+        else if (type.equals("exception")) {
+            map.put("RuntimeException", runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+            map.put("IOException", ioExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+            map.put("otherException", otherExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+        }
        return map;
     }
 
@@ -137,10 +136,17 @@ public class ErrorService {
 
     public void classifyExceptions(){
         for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
-            if (isKeyInEnum(entry.getKey(), MyRuntimeException.class, MyRuntimeException::getName)) {
-                runtimeExceptionsList.put(entry.getKey(), entry.getValue());
-            } else {
-                checkedExceptionsList.put(entry.getKey(), entry.getValue());
+            MyRuntimeException runtimeException = isKeyInEnum(entry.getKey(), MyRuntimeException.class, MyRuntimeException::getName);
+            if (runtimeException!=null) {
+                runtimeExceptionsList.put(runtimeException.getName(), entry.getValue());
+                continue;
+            }
+            MyIOException ioException = isKeyInEnum(entry.getKey(), MyIOException.class, MyIOException::getName);
+            if(ioException!=null){
+                ioExceptionsList.put(ioException.getName(),entry.getValue());
+            }
+            else {
+                otherExceptionsList.put(entry.getKey(), entry.getValue());
             }
         }
 
@@ -149,8 +155,14 @@ public class ErrorService {
 
     public void classifyErrors(){
         for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
-            if (isKeyInEnum(entry.getKey(), MyFatalError.class, MyFatalError::getName)) {
-                fatalErrorList.put(entry.getKey(), entry.getValue());
+            MyLinkageError linkageError = isKeyInEnum(entry.getKey(), MyLinkageError.class, MyLinkageError::getName);
+            if (linkageError!=null) {
+                linkageErrorList.put(linkageError.getName(), entry.getValue());
+                continue;
+            }
+            MyVirtualMachineError virtualMachineError = isKeyInEnum(entry.getKey(), MyVirtualMachineError.class, MyVirtualMachineError::getName);
+            if (virtualMachineError!=null) {
+                VMErrorList.put(virtualMachineError.getName(), entry.getValue());
             } else {
                 otherErrorList.put(entry.getKey(), entry.getValue());
             }
@@ -176,17 +188,16 @@ public class ErrorService {
         }
     }
 
-    public static <T extends Enum<T>> boolean isKeyInEnum(
+    public static <T extends Enum<T>> T isKeyInEnum(
             String key,
             Class<T> enumClass,
             EnumNameProvider<T> nameProvider) {
-        // Create a set of enum string representations
-        Set<String> enumNames = EnumSet.allOf(enumClass).stream()
-                .map(nameProvider::getName)
-                .collect(Collectors.toSet());
+        Optional<T> matchedEnum = EnumSet.allOf(enumClass).stream()
+                .filter(e -> nameProvider.getName(e).equalsIgnoreCase(key))
+                .findFirst();
 
-        // Check if the key is in the set
-        return enumNames.contains(key);
+        // 如果找到枚举值则返回，否则返回 null 或者你可以选择抛出异常
+        return matchedEnum.orElse(null);
     }
     @FunctionalInterface
     public interface EnumNameProvider<T extends Enum<T>> {

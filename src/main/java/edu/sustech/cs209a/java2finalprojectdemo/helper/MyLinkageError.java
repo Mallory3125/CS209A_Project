@@ -1,6 +1,7 @@
 package edu.sustech.cs209a.java2finalprojectdemo.helper;
 
-public enum LinkageError {
+public enum MyLinkageError {
+    LINKAGE_ERROR("LinkageError"),
     BOOTSTRAP_METHOD_ERROR("BootstrapMethodError"),
     CLASS_CIRCULARITY_ERROR("ClassCircularityError"),
     CLASS_FORMAT_ERROR("ClassFormatError"),
@@ -19,7 +20,7 @@ public enum LinkageError {
     private final String errorName;
 
 
-    LinkageError(String errorName) {
+    MyLinkageError(String errorName) {
         this.errorName = errorName;
     }
 

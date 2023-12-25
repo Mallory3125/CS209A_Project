@@ -27,8 +27,8 @@ public class BugController {
     }
 
     @GetMapping("/compare/between-categories")
-    public Map<String, Integer> compareBetweenCategories() {
-        return errorService.compareBetweenCategory();
+    public Map<String, Integer> compareBetweenCategories(@RequestParam(value = "type") String type) {
+        return errorService.compareBetweenCategory(type);
     }
 
     @GetMapping("/heat")

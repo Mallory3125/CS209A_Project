@@ -1,19 +1,18 @@
 <template>
     <el-row :gutter="20">
-      <el-col :span="24"><div ref="runtimeBarChart" class="chart" /></el-col>
+      <el-col :span="12"><div ref="exceptionPieChart" class="chart" /></el-col>
+      <el-col :span="12"><div ref="errorPieChart" class="chart" /></el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="24"><div ref="checkedBarChart" class="chart" /></el-col>
+      <el-col :span="4"
+        ><el-input v-model="searchBug" placeholder="please enter a type of bug"
+      /></el-col>
+      <el-col :span="12">
+        <el-button type="primary" @click="fetchData">Search</el-button>
+      </el-col>
     </el-row>
     <el-row :gutter="20">
-      <el-col :span="24"><div ref="fatalBarChart" class="chart" /></el-col>
-    </el-row>
-    <el-row :gutter="20">
-      <el-col :span="24"><div ref="otherBarChart" class="chart" /></el-col>
-    </el-row>
-    <el-row :gutter="20">
-      <el-col :span="12"><div ref="runtimeChart" class="chart" /></el-col>
-      <el-col :span="12"><div ref="betweenPieChart" class="chart" /></el-col>
+      <el-col :span="24"><div ref="bugBarChart" class="chart" /></el-col>
     </el-row>
   </template>
   
@@ -21,21 +20,19 @@
   import * as echarts from "echarts";
   import { onMounted, ref } from "vue";
   
-  
-  const betweenPieChart = ref(null);
-  const runtimeBarChart = ref(null);
-  const fatalBarChart = ref(null);
-  const checkedBarChart = ref(null);
-  const otherBarChart = ref(null);
+  const searchBug = ref(null);
+  const errorPieChart = ref(null);
+  const exceptionPieChart = ref(null);
+  const bugBarChart = ref(null);
   
   const baseurl = "http://127.0.0.1:8090";
   
-  function drawPieChart(chartData) {
-    const chart = echarts.init(betweenPieChart.value);
-    chart.resize({ height: "400px" });
-    chart.setOption({
+  function drawPieChart(chartData,mychart,type) {
+    const piechart = echarts.init(mychart.value);
+    piechart.resize({ height: "400px" });
+    piechart.setOption({
       title: {
-        text: "不同类bug热度信息",
+        text: "不同类"+type+"热度信息",
         left: "center",
       },
       tooltip: {
@@ -52,9 +49,8 @@
       ],
     });
   }
-  
-  function drawbarChart(chartRef,chartData,type) {
-    const chart = echarts.init(chartRef.value);
+  function drawbarChart(chartData,type) {
+    const chart = echarts.init(bugBarChart.value);
     const option = {
       dataZoom : [
             {
@@ -90,7 +86,7 @@
         },
       },
       yAxis: {
-        type: "log",
+        type: "value",
       },
       series: [
         {
@@ -104,43 +100,34 @@
     chart.setOption(option);
     chart.resize({ height: "400px" });
   }
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        `${baseurl}/bug/compare/within-category?type=${searchBug.value}`
+      );
+      const responseData = await response.json();
+      drawbarChart(responseData,searchBug.value);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
   
   onMounted(async () => {
     try {
      
-      const response = await fetch(baseurl + "/bug/comparebetween");
-      const responseData = await response.json();
-      drawPieChart(transformErrorMap(responseData));
-  
-      comparebetween("/bug/comparewithin?type=runtime",runtimeBarChart,"RuntimeException")
-      comparebetween("/bug/comparewithin?type=fatal",fatalBarChart,"FatalError")
-      comparebetween("/bug/comparewithin?type=other",otherBarChart,"OtherError")
-      comparebetween("/bug/comparewithin?type=checked",checkedBarChart,"CheckedException")
-      // const response2 = await fetch(baseurl + "/bug/comparewithin?type=runtime");
-      // const responseData2 = await response2.json();
-      // drawbarChart(runtimeBarChart,responseData2,"RuntimeException");
-  
-      // const response3 = await fetch(baseurl + "/bug/comparewithin?type=fatal");
-      // const responseData3 = await response3.json();
-      // drawbarChart(fatalBarChart,responseData3,"FatalError");
+      var response = await fetch(baseurl + "/bug/compare/between-categories?type=error");
+      var responseData = await response.json();
+      drawPieChart(transformErrorMap(responseData),errorPieChart,"error");
+      response = await fetch(baseurl + "/bug/compare/between-categories?type=exception");
+      responseData = await response.json();
+      drawPieChart(transformErrorMap(responseData),exceptionPieChart,"exception");
     } catch (error) {
       console.error("Error:", error);
     }
   });
   
-  async function comparebetween(path,chart,type){ 
-      const response = await fetch(baseurl + path);
-      const responseData = await response.json();
-      drawbarChart(chart,responseData,type);
-  }
-  
-  // beforeUnmount(async () => {
-  //   try {
-  //     await fetch(baseurl);
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // });
   
   const transformErrorMap = (map) => {
     return Object.entries(map).map(([name, value]) => {
