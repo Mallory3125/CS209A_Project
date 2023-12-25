@@ -48,44 +48,55 @@ public class ErrorService {
     public void initial(){
         logger.info("Initialization of Error Service started");
 
-        questions = questionRepository.findQuestionAboutBug();
-        answers = answerRepository.findAnswerAboutBug();
-        comments = commentRepository.findCommentAboutBug();
+        try {
+            questions = questionRepository.findQuestionAboutBug();
+            answers = answerRepository.findAnswerAboutBug();
+            comments = commentRepository.findCommentAboutBug();
 
-        for (Question q : questions) {
-            List<String> list = extractErrorNames(q.getBody(),"Error");
-            addToList(errorsList,list, Math.toIntExact(q.getViewCount()/50000));
-            List<String> list2 = extractErrorNames(q.getBody(),"Exception");
-            addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/50000));
+            for (Question q : questions) {
+                List<String> list = extractErrorNames(q.getBody(),"Error");
+                addToList(errorsList,list, Math.toIntExact(q.getViewCount()/50000));
+                List<String> list2 = extractErrorNames(q.getBody(),"Exception");
+                addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/50000));
+            }
+            for (Answer a : answers) {
+                List<String> list = extractErrorNames(a.getBody(),"Error");
+                addToList(errorsList,list,1);
+                List<String> list2 = extractErrorNames(a.getBody(),"Exception");
+                addToList(exceptionsList,list2,1);
+            }
+            for (Comment c : comments) {
+                List<String> list = extractErrorNames(c.getBody(),"Error");
+                addToList(errorsList,list,1);
+                List<String> list2 = extractErrorNames(c.getBody(),"Exception");
+                addToList(exceptionsList,list2,1);
+            }
+            classifyErrors();
+            classifyExceptions();
+        } catch (Exception e) {
+            logger.error("A " + e.getClass().getName() + " occurred during the operation");
         }
-        for (Answer a : answers) {
-            List<String> list = extractErrorNames(a.getBody(),"Error");
-            addToList(errorsList,list,1);
-            List<String> list2 = extractErrorNames(a.getBody(),"Exception");
-            addToList(exceptionsList,list2,1);
-        }
-        for (Comment c : comments) {
-            List<String> list = extractErrorNames(c.getBody(),"Error");
-            addToList(errorsList,list,1);
-            List<String> list2 = extractErrorNames(c.getBody(),"Exception");
-            addToList(exceptionsList,list2,1);
-        }
-        classifyErrors();
-        classifyExceptions();
 
-        logger.info(String.format("Initialization finished: %d kinds of errors , %d kinds of exceptions",errorsList.size(),exceptionsList.size()));
+        logger.info(String.format("Initialization finished: %d kinds of errors , %d kinds of exceptions", errorsList.size(), exceptionsList.size()));
     }
 
     public HashMap<String,Integer> compareWithinCategory(String type){
-        return switch (type) {
-            case "RuntimeException" -> runtimeExceptionsList;
-            case "IOException" -> ioExceptionsList;
-            case "otherException" -> otherExceptionsList;
-            case "VirtualMachineError" -> VMErrorList;
-            case "LinkageError" -> linkageErrorList;
-            case "otherError" -> otherErrorList;
-            default -> null;
-        };
+        HashMap<String,Integer> map;
+        switch (type) {
+            case "RuntimeException" -> map = runtimeExceptionsList;
+            case "IOException" -> map = ioExceptionsList;
+            case "otherException" -> map = otherExceptionsList;
+            case "VirtualMachineError" -> map = VMErrorList;
+            case "LinkageError" -> map = linkageErrorList;
+            case "otherError" -> map = otherErrorList;
+            default -> map = new HashMap<>();
+        }
+        if (map.isEmpty()){
+            logger.warn("The given type in method compareWithinCategory does not match, the returned map would be null");
+        } else {
+            logger.info("Comparing within Categories finished");
+        }
+        return map;
     }
 
     public HashMap<String,Integer> compareBetweenCategory(String type){
@@ -94,34 +105,47 @@ public class ErrorService {
             map.put("VirtualMachineError",VMErrorList.values().stream().mapToInt(Integer::intValue).sum());
             map.put("LinkageError",linkageErrorList.values().stream().mapToInt(Integer::intValue).sum());
             map.put("otherError",otherErrorList.values().stream().mapToInt(Integer::intValue).sum());
+            logger.info("Comparing between categories finished");
         }
         else if (type.equals("exception")) {
             map.put("RuntimeException", runtimeExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
             map.put("IOException", ioExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
             map.put("otherException", otherExceptionsList.values().stream().mapToInt(Integer::intValue).sum());
+            logger.info("Comparing between categories finished");
+        }
+        else {
+            logger.warn("The given type in method compareBetweenCategory does not match, the returned map would be null");
         }
        return map;
     }
 
     public Integer queryBug(String str,String type){
         logger.info("Starting querying bugs");
-        HashMap<String,Integer> map = new HashMap<>();
+        HashMap<String,Integer> map;
         if (type.equals("error")) map = errorsList;
         else if (type.equals("exception")) map = exceptionsList;
+        else {
+            logger.warn("The given type in method queryBug does not match, the returned number would be 0");
+            return 0;
+        }
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
             if (entry.getKey().equals(str)) {
-                logger.info("Successfully completed querying bugs about " + str);
+                logger.info("Successfully completed querying bug about " + str);
                 return entry.getValue();
             }
         }
-        logger.debug("No fitted bugs queried");
+        logger.warn("No fitted bugs found");
         return 0;
     }
 
     public List<Map.Entry<String, Integer>> queryTopN(int n,String type){
-        HashMap<String,Integer> map = new HashMap<>();
+        HashMap<String,Integer> map;
         if (type.equals("error")) map = errorsList;
         else if (type.equals("exception")) map = exceptionsList;
+        else {
+            logger.warn("The given type does not match, the returned map would be null");
+            return null;
+        }
 
         logger.info(String.format("Querying top %d %s:", n, type));
         List<Map.Entry<String, Integer>> topNItems = map.entrySet()
@@ -137,37 +161,35 @@ public class ErrorService {
     public void classifyExceptions(){
         for (Map.Entry<String, Integer> entry : exceptionsList.entrySet()) {
             MyRuntimeException runtimeException = isKeyInEnum(entry.getKey(), MyRuntimeException.class, MyRuntimeException::getName);
-            if (runtimeException!=null) {
+            if (runtimeException != null) {
                 runtimeExceptionsList.put(runtimeException.getName(), entry.getValue());
                 continue;
             }
             MyIOException ioException = isKeyInEnum(entry.getKey(), MyIOException.class, MyIOException::getName);
-            if(ioException!=null){
+            if(ioException != null){
                 ioExceptionsList.put(ioException.getName(),entry.getValue());
             }
             else {
                 otherExceptionsList.put(entry.getKey(), entry.getValue());
             }
         }
-
         logger.info("Classification of exceptions completed");
     }
 
     public void classifyErrors(){
         for (Map.Entry<String, Integer> entry : errorsList.entrySet()) {
             MyLinkageError linkageError = isKeyInEnum(entry.getKey(), MyLinkageError.class, MyLinkageError::getName);
-            if (linkageError!=null) {
+            if (linkageError != null) {
                 linkageErrorList.put(linkageError.getName(), entry.getValue());
                 continue;
             }
             MyVirtualMachineError virtualMachineError = isKeyInEnum(entry.getKey(), MyVirtualMachineError.class, MyVirtualMachineError::getName);
-            if (virtualMachineError!=null) {
+            if (virtualMachineError != null) {
                 VMErrorList.put(virtualMachineError.getName(), entry.getValue());
             } else {
                 otherErrorList.put(entry.getKey(), entry.getValue());
             }
         }
-
         logger.info("Classification of errors completed");
     }
 

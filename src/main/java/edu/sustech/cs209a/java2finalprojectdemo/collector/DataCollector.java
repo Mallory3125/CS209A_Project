@@ -46,10 +46,10 @@ public class DataCollector {
             cnt++;
             if (cnt % 100 == 0) System.out.println(json);
             JSONObject jsonObject = JSON.parseObject(json);
-            logger.debug("The returned JSONArray is {}.", jsonObject.getJSONArray("items"));
+            logger.info("The returned JSONArray is {}.", jsonObject.getJSONArray("items"));
             return jsonObject.getJSONArray("items");
         } catch (Exception e) {
-            logger.error("An error occurred during the operation", e);
+            logger.error("An " + e.getClass().getName() + "occurred during the operation");
             throw new RuntimeException(e);
         }
     }
@@ -133,8 +133,7 @@ public class DataCollector {
         long executionTime = endTime - startTime;
 
         // Convert execution time to milliseconds and print it
-        logger.debug("The execution time is " + executionTime / 1_000_000 + "milliseconds");
-        System.out.println("Execution time: " + executionTime / 1_000_000 + " milliseconds");
+        logger.info("The execution time is " + executionTime / 1_000_000 + "milliseconds");
     }
 
 }

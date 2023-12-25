@@ -28,11 +28,11 @@ public class RelateTopicService {
     public List<Map.Entry<String, Double>> queryRelateTopic(String input){
         logger.info("Querying related topics for input: {}", input);
 
-        HashMap<String,Integer> relatedTopics = query(input);
+        HashMap<String,Integer> relatedTopics = query(input, 2);
         List<String> stringList = List.of(input.split("\\s+"));
-        if (stringList.size()!=1) { //if not a word
+        if (stringList.size() != 1) { //if not a word
             for (String str : stringList) {
-                HashMap<String, Integer> map2 = query(str);
+                HashMap<String, Integer> map2 = query(str, 1);
                 map2.forEach((key, value) -> relatedTopics.merge(key, value, Integer::sum));
             }
         }
@@ -56,22 +56,22 @@ public class RelateTopicService {
         return percentages;
     }
 
-    public HashMap<String,Integer> query(String str){
+    public HashMap<String,Integer> query(String str,int weight){
         logger.info("Performing query for input: {}", str);
 
         String input = "%" + str + "%";
         HashMap<String,Integer> relatedTopics = new HashMap<>();
         List<Long> questions = questionRepository.findIdByBodyILike(input);
-        addToList(relatedTopics,questions,5);
+        addToList(relatedTopics,questions, 5 * weight);
         List<Long> answers = answerRepository.findIdbybodyilike(input);
-        addToList(relatedTopics,answers,1);
+        addToList(relatedTopics,answers, weight);
 
-        logger.debug("Found {} questions and {} answers", questions.size(), answers.size());
+        logger.info("Found {} questions and {} answers", questions.size(), answers.size());
         return relatedTopics;
     }
 
     public void addToList(HashMap<String,Integer> targetList, List<Long> list, int weight) {
-        logger.debug("Adding tags to targetList for list of size: {}", list.size());
+        logger.info("Adding tags to targetList for list of size: {}", list.size());
 
         for (Long i : list) {
             List<String> tmp = questionTagsRepository.findTagsByQuestionId(i);
@@ -79,6 +79,8 @@ public class RelateTopicService {
                 targetList.put(str,targetList.getOrDefault(str, 0) + weight);
             }
         }
+
+        logger.info(String.format("%d tags added to targetList", list.size()));
     }
 
 }

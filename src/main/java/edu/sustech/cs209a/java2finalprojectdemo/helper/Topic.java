@@ -110,9 +110,11 @@ public class Topic {
                 }
             }
         } catch (NullPointerException e) {
-            logger.error("An null pointer exception occurred during the operation", e);;
+            logger.error("A " + e.getClass().getName() + " occurred in method getTopic because topics is not initialized");
+            new Topic();
+            logger.info("Topics has been initialized");
         } catch (Exception e) {
-            logger.error("An error occurred during the operation", e);
+            logger.error("A " + e.getClass().getName() + " occurred in the method getTopic");
         }
         return "";
     }
