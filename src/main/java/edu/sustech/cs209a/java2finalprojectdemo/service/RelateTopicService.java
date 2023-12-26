@@ -67,6 +67,10 @@ public class RelateTopicService {
         addToList(relatedTopics,answers, weight);
 
         logger.info("Found {} questions and {} answers", questions.size(), answers.size());
+
+        if (relatedTopics.isEmpty()) {
+            logger.warn("No question or answer found in method query");
+        }
         return relatedTopics;
     }
 
