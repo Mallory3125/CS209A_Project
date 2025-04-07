@@ -55,9 +55,9 @@ public class ErrorService {
 
             for (Question q : questions) {
                 List<String> list = extractErrorNames(q.getBody(),"Error");
-                addToList(errorsList,list, Math.toIntExact(q.getViewCount()/50000));
+                addToList(errorsList,list, Math.toIntExact(q.getViewCount() / 50000));
                 List<String> list2 = extractErrorNames(q.getBody(),"Exception");
-                addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount()/50000));
+                addToList(exceptionsList,list2,Math.toIntExact(q.getViewCount() / 50000));
             }
             for (Answer a : answers) {
                 List<String> list = extractErrorNames(a.getBody(),"Error");
@@ -166,7 +166,7 @@ public class ErrorService {
                 continue;
             }
             MyIOException ioException = isKeyInEnum(entry.getKey(), MyIOException.class, MyIOException::getName);
-            if(ioException != null){
+            if(ioException != null) {
                 ioExceptionsList.put(ioException.getName(),entry.getValue());
             }
             else {

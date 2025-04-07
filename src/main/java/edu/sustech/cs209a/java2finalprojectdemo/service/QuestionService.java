@@ -60,7 +60,9 @@ public class QuestionService {
                     }
 
                     ranking.putIfAbsent(currentTopic, 0.0);
-                    ranking.put(currentTopic, question.getAnswerCount() + question.getScore() / 1e1 + question.getViewCount() / 1e3 + ranking.get(currentTopic));
+                    ranking.put(currentTopic, question.getAnswerCount() +
+                        question.getScore() / 1e1 + question.getViewCount() / 1e3 + ranking.get(currentTopic));
+
 
                 } catch (Exception e) {
                     logger.error("A " + e.getClass().getName() + " occurred when generalizing the top topics");
