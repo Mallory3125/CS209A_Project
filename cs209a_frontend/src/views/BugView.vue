@@ -84,13 +84,19 @@ function drawPieChart(chartData, mychart, type) {
     legend: {
       orient: 'vertical',
       right: 10,
-      top: 'center'
+      top: '70%',  // 向下移动
+      padding: [10, 0],
+      itemGap: 10,
+      textStyle: {
+        fontSize: 12
+      }
     },
     series: [
       {
         name: "热度",
         type: "pie",
         radius: ["40%", "70%"],
+        center: ['50%', '45%'],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
