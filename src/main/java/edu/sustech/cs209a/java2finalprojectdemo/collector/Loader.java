@@ -102,9 +102,7 @@ public class Loader {
 
     public static <T> void insertDataToDatabase(List<T> data, String tableName)  {
         T item1 = data.get(0);
-        // 构建插入语句
         StringBuilder insertQuery = new StringBuilder("INSERT INTO " + tableName + " (");
-        // 获取实体类的字段
         Field[] fields = item1.getClass().getDeclaredFields();
         List<String> columnsList = getColumnName(fields);
 

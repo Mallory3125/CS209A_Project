@@ -42,11 +42,9 @@ public class RelateTopicService {
 
         int sum = relatedTopics.values().stream().mapToInt(Integer::intValue).sum();
 
-        // 创建包含每个话题和它们百分比的列表
         List<Map.Entry<String, Double>> percentages = new ArrayList<>();
         relatedTopics.forEach((topic, count) -> {
             double percentage = 100.0 * count / sum;
-            // 使用 SimpleEntry 而不是 HashMap
             Map.Entry<String, Double> topicPercentage = new AbstractMap.SimpleEntry<>(topic, percentage);
             percentages.add(topicPercentage);
         });
